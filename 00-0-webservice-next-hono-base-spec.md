@@ -252,6 +252,7 @@ paths:
 | バリデーション | Zod + openapi-zod-client | 契約整合性を自動化 |
 | DB | PostgreSQL + Drizzle ORM | 型安全かつ移行管理が容易 |
 | 認証 | Better Auth | Next.jsと親和性が高い |
+| レートリミット | @upstash/ratelimit + VercelKV | Vercel環境最適化・Sliding Window高精度制限 |
 | スキーマ生成 | openapi-typescript / drizzle-kit | 自動化・整合性維持 |
 | パッケージ管理 | pnpm | モノレポに最適 |
 | CI/CD | GitHub Actions + Turbo | キャッシュ構築高速化 |
@@ -322,7 +323,8 @@ paths:
 ### セキュリティ
 - 環境変数は Infisical で一元管理、`.env` ファイルはコミット禁止
 - 認証レベル（Public / Authenticated / Authorized）に応じたアクセス制御
-- レート制限とCORS設定の適切な管理
+- レートリミット: @upstash/ratelimit + VercelKV による高精度制限制御
+- CORS設定の適切な管理
 
 ### ドキュメント管理
 - `ADR`（Architectural Decision Record）は `/docs/adr/` に記録

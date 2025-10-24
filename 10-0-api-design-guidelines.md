@@ -1,25 +1,44 @@
-# API設計ガイドライン
+# API設計仕様書作成ガイドライン
 
-WebService-Next-Hono-Base プロジェクトにおけるAPI設計の統一ルールとベストプラクティスを定義します。
+**WebService-Next-Hono-Base** を基盤として実サービスを開発する際の、API設計における技術仕様書作成・設計指針を提供します。
 
 ---
 
-## 🎯 設計原則
+## 🎯 本ガイドラインの使い方
 
-### 1. RESTful設計
-- リソース指向のURL設計
-- HTTPメソッドの適切な使用
-- ステータスコードの統一
+### 対象読者
+- **API設計者**: システム設計・API仕様検討時
+- **技術仕様書作成者**: API仕様書・設計書作成時  
+- **開発リーダー**: API技術方針・実装指針策定時
 
-### 2. 契約駆動開発 (Contract First)
-- OpenAPIスキーマが単一の契約
-- 型安全性を最優先
-- フロントエンド・バックエンド間の整合性保証
+### 活用場面
+- **API設計フェーズ**: RESTful API設計・仕様検討時
+- **仕様書作成**: OpenAPI仕様書・API設計書作成時
+- **技術選定**: Hono + Zod バリデーションを活用したAPI設計時
+- **開発計画**: フロントエンド・バックエンド間のAPI契約策定時
 
-### 3. 一貫性の確保
-- 命名規則の統一
-- レスポンス形式の統一
-- エラーハンドリングの統一
+---
+
+## 🎯 WebService-Next-Hono-Base でのAPI設計原則
+
+### 本ベースプロジェクトのAPI構成
+このベースでは以下のAPI技術スタックを前提としています：
+
+| コンポーネント | 役割 | 仕様書での考慮点 |
+|---------------|------|------------------|
+| **Hono** | 高速APIフレームワーク | ルーティング・ミドルウェア設計 |
+| **Zod** | スキーマバリデーション | リクエスト・レスポンス型定義 |
+| **OpenAPI** | API仕様書標準 | 契約駆動開発・型安全性 |
+| **Better Auth** | 認証・認可 | セキュリティ・権限設計 |
+
+### 設計時に決定すべきAPI設計要素
+
+| 設計要素 | 仕様書で定義すべき内容 | 本ベースでの実現方法 |
+|---------|----------------------|---------------------|
+| **リソース設計** | URL構造・HTTPメソッド・パラメータ | RESTful原則 + Honoルーティング |
+| **認証・認可** | エンドポイント毎のアクセス制御 | Better Auth統合設計 |
+| **データ形式** | リクエスト・レスポンスのスキーマ | Zodスキーマ定義 |
+| **エラーハンドリング** | エラーレスポンス・ステータスコード | 統一エラー形式設計 |
 
 ---
 
@@ -106,7 +125,325 @@ GET    /v1/admin/stats       # Admin権限
 
 ---
 
-## 📊 クエリパラメータ設計
+## 🚦 レートリミット設計
+
+### レートリミットパッケージ選択指針
+**WebService-Next-Hono-Base**では以下のパッケージ選択を推奨：
+
+| サービス規模 | 推奨パッケージ | 理由・特徴 | 設定例 |
+|-------------|--------------|-----------|-------|
+| **小〜中規模** | `@hono/rate-limiter` | 公式・軽量・メモリベース | 開発・ステージング環境 |
+| **中〜大規模** | `hono-rate-limiter` | Redis連携・分散対応・永続化 | 本番環境・複数インスタンス |
+| **大規模・特殊要件** | カスタム実装 | 独自ロジック・複雑な制限 | 企業向け・高度な制御 |
+
+### API仕様書でのレートリミット定義
+エンドポイント毎に以下の制限仕様を明記してください：
+
+#### エンドポイント別レートリミット設計表
+```markdown
+| エンドポイント | 認証レベル | 制限 | 期間 | ストレージ | キー | 目的 |
+|---------------|-----------|------|------|-----------|------|------|
+| POST /v1/auth/login | Public | 5回 | 15分 | VercelKV | IP | ブルートフォース防止 |
+| POST /v1/auth/register | Public | 3回 | 1時間 | VercelKV | IP | スパム登録防止 |
+| GET /v1/users | Authenticated | 100回 | 1分 | VercelKV | UserID | 通常利用制限 |
+| POST /v1/posts | Authenticated | 10回 | 1分 | VercelKV | UserID | コンテンツスパム防止 |
+| DELETE /v1/users/{id} | Admin | 5回 | 1分 | VercelKV | UserID | 誤操作防止 |
+| GET /v1/public/* | Public | 60回 | 1分 | VercelKV | IP | リソース保護 |
+```
+
+### @upstash/ratelimit による実装方法
+
+#### 1. 基本設定ファイル作成
+```typescript
+// apps/api/src/lib/ratelimit.ts
+import { Ratelimit } from "@upstash/ratelimit";
+import { kv } from "@vercel/kv";
+
+// エンドポイント別制限設定
+export const rateLimitConfigs = {
+  // 認証系API - 最厳格
+  'POST:/v1/auth/login': {
+    limiter: Ratelimit.slidingWindow(5, "15m"),
+    keyGenerator: 'ip',
+    description: 'ブルートフォース防止'
+  },
+  'POST:/v1/auth/register': {
+    limiter: Ratelimit.slidingWindow(3, "1h"), 
+    keyGenerator: 'ip',
+    description: 'スパム登録防止'
+  },
+  
+  // 認証済みAPI - 中程度制限
+  'GET:/v1/users': {
+    limiter: Ratelimit.slidingWindow(100, "1m"),
+    keyGenerator: 'user',
+    description: '通常利用制限'
+  },
+  'POST:/v1/posts': {
+    limiter: Ratelimit.slidingWindow(10, "1m"),
+    keyGenerator: 'user', 
+    description: 'コンテンツスパム防止'
+  },
+  
+  // 管理者API - 慎重制限
+  'DELETE:/v1/users/{id}': {
+    limiter: Ratelimit.slidingWindow(5, "1m"),
+    keyGenerator: 'user',
+    description: '誤操作防止'
+  },
+  
+  // 公開API - リソース保護
+  'GET:/v1/public/*': {
+    limiter: Ratelimit.slidingWindow(60, "1m"),
+    keyGenerator: 'ip',
+    description: 'リソース保護'
+  }
+};
+
+// レートリミッター作成
+export const createRateLimit = (config: typeof rateLimitConfigs[keyof typeof rateLimitConfigs]) => {
+  return new Ratelimit({
+    redis: kv,
+    limiter: config.limiter,
+    analytics: process.env.NODE_ENV === "production",
+    prefix: "rl"
+  });
+};
+```
+
+#### 2. ミドルウェア実装
+```typescript
+// apps/api/src/middleware/rateLimit.ts
+import { Context, Next } from "hono";
+import { rateLimitConfigs, createRateLimit } from "../lib/ratelimit";
+
+// キー生成関数
+const keyGenerators = {
+  ip: (c: Context) => {
+    return c.req.header('x-forwarded-for') || 
+           c.req.header('cf-connecting-ip') || 
+           'unknown';
+  },
+  user: (c: Context) => {
+    const user = c.get('user'); // Better Auth からユーザー情報取得
+    return user?.id || 'anonymous';
+  }
+};
+
+export const rateLimitMiddleware = async (c: Context, next: Next) => {
+  const method = c.req.method;
+  const path = c.req.path;
+  const routeKey = `${method}:${path}`;
+  
+  // 設定を取得（パターンマッチング対応）
+  let config = rateLimitConfigs[routeKey];
+  
+  // パターンマッチング（例: /v1/public/* や /v1/users/{id}）
+  if (!config) {
+    for (const [pattern, conf] of Object.entries(rateLimitConfigs)) {
+      const regex = pattern
+        .replace(/\*/g, '.*')
+        .replace(/\{[^}]+\}/g, '[^/]+');
+      
+      if (new RegExp(`^${regex}$`).test(routeKey)) {
+        config = conf;
+        break;
+      }
+    }
+  }
+  
+  // デフォルト制限（設定がない場合）
+  if (!config) {
+    config = {
+      limiter: Ratelimit.slidingWindow(100, "1m"),
+      keyGenerator: 'ip',
+      description: 'デフォルト制限'
+    };
+  }
+  
+  // レートリミッター作成・実行
+  const ratelimit = createRateLimit(config);
+  const keyGen = keyGenerators[config.keyGenerator];
+  const identifier = keyGen(c);
+  
+  const { success, limit, remaining, reset } = await ratelimit.limit(
+    `${config.keyGenerator}:${identifier}`
+  );
+  
+  // レスポンスヘッダー設定
+  c.header('X-RateLimit-Limit', limit.toString());
+  c.header('X-RateLimit-Remaining', remaining.toString());
+  c.header('X-RateLimit-Reset', reset.toString());
+  c.header('X-RateLimit-Policy', config.description);
+  
+  // 制限超過時のエラーレスポンス
+  if (!success) {
+    return c.json({
+      success: false,
+      error: {
+        code: "RATE_LIMIT_EXCEEDED",
+        message: `Rate limit exceeded for ${config.description}`,
+        retry_after: Math.ceil((reset.getTime() - Date.now()) / 1000),
+        limit,
+        remaining: 0,
+        reset: reset.getTime()
+      }
+    }, 429);
+  }
+  
+  await next();
+};
+```
+
+#### 3. ルーター別適用
+```typescript
+// apps/api/src/routes/auth.ts
+import { Hono } from 'hono'
+import { rateLimitMiddleware } from '../middleware/rateLimit'
+
+const auth = new Hono()
+
+// 認証系エンドポイント（自動的に厳しい制限が適用される）
+auth.use('*', rateLimitMiddleware)
+
+auth.post('/login', async (c) => {
+  // ログイン処理
+  // 自動的に 5回/15分 の制限が適用される
+})
+
+auth.post('/register', async (c) => {
+  // 登録処理  
+  // 自動的に 3回/1時間 の制限が適用される
+})
+
+export { auth as authRoutes }
+```
+
+```typescript
+// apps/api/src/routes/users.ts
+import { Hono } from 'hono'
+import { authMiddleware } from '../middleware/auth'
+import { rateLimitMiddleware } from '../middleware/rateLimit'
+
+const users = new Hono()
+
+// 認証 + レートリミット適用
+users.use('*', authMiddleware)
+users.use('*', rateLimitMiddleware)
+
+users.get('/', async (c) => {
+  // ユーザー一覧取得
+  // 自動的に 100回/1分 の制限が適用される
+})
+
+users.delete('/:id', async (c) => {
+  // ユーザー削除
+  // 自動的に 5回/1分 の制限が適用される（管理者権限チェックも必要）
+})
+
+export { users as userRoutes }
+```
+
+#### 4. メインアプリへの統合
+```typescript
+// apps/api/src/index.ts
+import { Hono } from 'hono'
+import { cors } from 'hono/cors'
+import { authRoutes } from './routes/auth'
+import { userRoutes } from './routes/users'
+
+const app = new Hono()
+
+// グローバルミドルウェア
+app.use('*', cors())
+
+// ルーティング（各ルートでレートリミット自動適用）
+app.route('/v1/auth', authRoutes)
+app.route('/v1/users', userRoutes)
+
+export default app
+```
+
+#### 5. 環境変数設定（Infisical）
+```bash
+# Vercel本番環境
+infisical secrets set --env=production KV_REST_API_URL https://prod-xxx.upstash.io
+infisical secrets set --env=production KV_REST_API_TOKEN AYxxx...
+
+# 開発環境（ローカルRedis使用の場合）
+infisical secrets set --env=development REDIS_URL redis://localhost:6379
+infisical secrets set --env=development RATE_LIMIT_STORAGE local
+```
+```
+
+#### パッケージ別設定仕様例
+```typescript
+// hono-rate-limiter使用時の設定仕様
+const rateLimitConfig = {
+  // Redis連携設定
+  store: {
+    type: 'redis',
+    url: process.env.REDIS_URL,
+    keyPrefix: 'rate_limit:',
+    connectTimeout: 5000
+  },
+  
+  // エンドポイント別制限
+  limits: {
+    '/auth/login': {
+      windowMs: 15 * 60 * 1000, // 15分
+      max: 5,
+      keyGenerator: (c) => c.req.header('x-forwarded-for') || 'unknown',
+      onLimitReached: (req, info) => {
+        // 違反時の追加処理（ログ・通知等）
+      }
+    }
+  },
+  
+  // 分散環境対応
+  distributed: true,
+  skipSuccessfulRequests: false,
+  skipFailedRequests: false
+}
+```
+
+#### OpenAPI仕様での記載例
+```yaml
+paths:
+  /v1/auth/login:
+    post:
+      summary: ユーザーログイン
+      description: レートリミット：5回/15分（IPベース）
+      x-rate-limit:
+        requests: 5
+        period: "15m"
+        scope: "ip"
+        block_duration: "15m"
+      responses:
+        '429':
+          description: Rate limit exceeded
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: 再試行までの秒数
+```
+
+#### レートリミット違反時のレスポンス設計
+```json
+{
+  "error": "rate_limit_exceeded",  
+  "message": "Rate limit exceeded. Try again in 60 seconds.",
+  "retry_after": 60,
+  "limit": 100,
+  "remaining": 0,
+  "reset": 1640995200
+}
+```
+
+---
+
+## �📊 クエリパラメータ設計
 
 ### ページネーション
 ```

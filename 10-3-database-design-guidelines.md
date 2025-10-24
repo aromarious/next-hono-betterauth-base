@@ -1,16 +1,44 @@
-# データベース設計ガイドライン
+# データベース技術仕様書作成ガイドライン
 
-WebService-Next-Hono-Base を基盤とするWebサービス開発において、Drizzle ORM + PostgreSQL を使用したデータベース設計のガイドラインとベストプラクティスを提供します。
+**WebService-Next-Hono-Base** を基盤として実サービスを開発する際の、データベース技術仕様書作成における設計指針・テンプレートを提供します。
 
 ---
 
-## 🎯 ガイドラインの目的
+## 🎯 本ガイドラインの使い方
 
-このガイドラインは：
-- **型安全なDB設計の実践方法を定義**
-- **Drizzle ORM の最適な使用方法・設計パターンを提供**
-- **スケーラブルなデータベース設計の標準化**
-- PostgreSQL + Better Auth 構成での最適なスキーマ設計を実現
+### 対象読者
+- **データベース設計者**: スキーマ設計・データモデリング時
+- **技術仕様書作成者**: DB設計書・ER図・マイグレーション仕様作成時  
+- **開発リーダー**: データアーキテクチャ・パフォーマンス設計時
+
+### 活用場面
+- **データ設計**: エンティティ関係・正規化・インデックス設計時
+- **仕様書作成**: スキーマ定義・制約・トランザクション仕様書作成時
+- **マイグレーション計画**: データベース変更・バージョン管理仕様策定時
+- **パフォーマンス設計**: クエリ最適化・スケーリング仕様策定時
+
+---
+
+## 🎯 WebService-Next-Hono-Base でのデータベース設計原則
+
+### 本ベースプロジェクトのデータベース構成
+このベースでは以下のデータベース技術スタックを前提としています：
+
+| コンポーネント | 役割 | 仕様書での考慮点 |
+|---------------|------|------------------|
+| **PostgreSQL** | メインデータストレージ | スキーマ設計・制約・インデックス設計 |
+| **Drizzle ORM** | 型安全ORM | スキーマ定義・マイグレーション設計 |
+| **Better Auth** | 認証データ管理 | ユーザー・セッション・権限スキーマ統合 |
+| **Zod** | データバリデーション | スキーマバリデーション・型整合性 |
+
+### 技術仕様書で定義すべきデータベース要素
+
+| 設計要素 | 技術仕様書での定義内容 | 本ベースでの実現方法 |
+|---------|----------------------|---------------------|
+| **スキーマ設計** | テーブル・カラム・制約・関係性 | Drizzleスキーマ定義 + 型生成 |
+| **データ整合性** | 制約・トランザクション・バリデーション | PostgreSQL制約 + Zodバリデーション |
+| **マイグレーション** | スキーマ変更・バージョン管理・ロールバック | Drizzleマイグレーション設計 |
+| **パフォーマンス** | インデックス・クエリ最適化・分析 | PostgreSQL最適化 + 監視統合 |
 
 ---
 
@@ -215,6 +243,162 @@ export const timestampTriggers = `
   END;
   $$ language 'plpgsql';
 `;
+
+---
+
+## 🚦 レートリミット・セキュリティ関連のデータベース設計
+
+### レートリミット管理テーブル設計
+**レートリミットパッケージ**の永続化ストレージとしてのデータベース設計指針：
+
+#### パッケージ別ストレージ戦略
+```markdown
+## ストレージ選択指針
+
+### パッケージ別推奨ストレージ
+| パッケージ | 主ストレージ | 補助ストレージ | 用途分離 |
+|-----------|-------------|---------------|----------|
+| **@hono/rate-limiter** | Memory | PostgreSQL | 状態：メモリ / 履歴：DB |
+| **hono-rate-limiter** | Redis | PostgreSQL | リアルタイム：Redis / 分析：DB |
+| **redis-rate-limiter** | Redis | PostgreSQL | 全て：Redis / バックアップ：DB |
+
+### データベース設計パターン
+- **ハイブリッド型**: Redis（高速アクセス）+ PostgreSQL（永続化・分析）
+- **ログ特化型**: 制限状態はパッケージ任せ、違反ログのみDB管理
+- **設定管理型**: 動的な制限設定変更をDB管理
+```
+
+#### レートリミット状態管理
+```typescript
+// ops/db/schema/rate-limits.ts
+import { pgTable, text, integer, timestamp, index } from 'drizzle-orm/pg-core'
+
+// レートリミット状態テーブル
+export const rateLimitStates = pgTable('rate_limit_states', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  key: text('key').notNull().unique(), // IP_endpoint または userID_endpoint
+  scope: text('scope').notNull(), // 'ip', 'user', 'api_key'
+  identifier: text('identifier').notNull(), // IP address, user ID, API key
+  endpoint: text('endpoint').notNull(), // API endpoint path
+  requestCount: integer('request_count').notNull().default(0),
+  windowStart: timestamp('window_start', { withTimezone: true }).notNull(),
+  windowEnd: timestamp('window_end', { withTimezone: true }).notNull(),
+  lastRequest: timestamp('last_request', { withTimezone: true }).defaultNow().notNull(),
+  isBlocked: boolean('is_blocked').default(false),
+  blockExpiresAt: timestamp('block_expires_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  keyIdx: index('rate_limit_key_idx').on(table.key),
+  identifierIdx: index('rate_limit_identifier_idx').on(table.identifier),
+  endpointIdx: index('rate_limit_endpoint_idx').on(table.endpoint),
+  windowEndIdx: index('rate_limit_window_end_idx').on(table.windowEnd),
+}))
+
+// レートリミット違反ログテーブル
+export const rateLimitViolations = pgTable('rate_limit_violations', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  identifier: text('identifier').notNull(), // IP または UserID
+  endpoint: text('endpoint').notNull(),
+  method: text('method').notNull(),
+  userAgent: text('user_agent'),
+  referer: text('referer'),
+  requestsAttempted: integer('requests_attempted').notNull(),
+  limitAllowed: integer('limit_allowed').notNull(),
+  windowDuration: text('window_duration').notNull(), // '15m', '1h'
+  violationType: text('violation_type').notNull(), // 'soft', 'hard', 'malicious'
+  blockDuration: integer('block_duration'), // 秒数
+  isAutoBlocked: boolean('is_auto_blocked').default(false),
+  clientInfo: json('client_info').$type<{
+    ip: string
+    country?: string
+    userAgent: string
+    headers: Record<string, string>
+  }>(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  identifierIdx: index('violation_identifier_idx').on(table.identifier),
+  endpointIdx: index('violation_endpoint_idx').on(table.endpoint),
+  createdAtIdx: index('violation_created_at_idx').on(table.createdAt),
+  violationTypeIdx: index('violation_type_idx').on(table.violationType),
+}))
+
+// IP遮断管理テーブル
+export const ipBlockList = pgTable('ip_block_list', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  ipAddress: text('ip_address').notNull().unique(),
+  reason: text('reason').notNull(), // 'rate_limit', 'suspicious', 'manual'
+  blockType: text('block_type').notNull(), // 'temporary', 'permanent'
+  expiresAt: timestamp('expires_at', { withTimezone: true }),
+  blockedBy: text('blocked_by').references(() => users.id), // 手動遮断時の管理者
+  autoBlocked: boolean('auto_blocked').default(true),
+  violationCount: integer('violation_count').notNull().default(1),
+  lastViolation: timestamp('last_violation', { withTimezone: true }).defaultNow().notNull(),
+  notes: text('notes'), // 管理者メモ
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  ipIdx: index('ip_block_ip_idx').on(table.ipAddress),
+  expiresAtIdx: index('ip_block_expires_idx').on(table.expiresAt),
+  blockTypeIdx: index('ip_block_type_idx').on(table.blockType),
+}))
+```
+
+#### レートリミット設定管理
+```typescript
+// レートリミット設定テーブル（動的設定変更用）
+export const rateLimitConfigs = pgTable('rate_limit_configs', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  endpoint: text('endpoint').notNull(), // '/auth/login', '/api/users'
+  method: text('method'), // 'POST', 'GET', null（全メソッド）
+  scope: text('scope').notNull(), // 'ip', 'user', 'api_key'
+  requestLimit: integer('request_limit').notNull(),
+  windowDuration: text('window_duration').notNull(), // '15m', '1h', '1d'
+  blockDuration: text('block_duration'), // '15m', '1h'
+  isActive: boolean('is_active').default(true),
+  priority: integer('priority').default(0), // 優先順位（高い値が優先）
+  description: text('description'),
+  createdBy: text('created_by').references(() => users.id),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  endpointIdx: index('rate_config_endpoint_idx').on(table.endpoint),
+  scopeIdx: index('rate_config_scope_idx').on(table.scope),
+  priorityIdx: index('rate_config_priority_idx').on(table.priority),
+}))
+```
+
+#### データベース設計のベストプラクティス
+```markdown
+## レートリミットDB設計の考慮点
+
+### パフォーマンス設計
+- インデックス設計: 検索頻度の高いカラム（key, identifier, endpoint）
+- パーティション設計: 日付別パーティションで古いデータ自動削除
+- TTL設定: 期限切れレコードの自動クリーンアップ
+
+### データ保持戦略
+- リアルタイム状態: 7日間保持（rate_limit_states）
+- 違反ログ: 90日間保持（rate_limit_violations）  
+- 遮断履歴: 1年間保持（ip_block_list）
+
+### 運用・監視クエリ例
+```sql
+-- 現在の制限状況確認
+SELECT endpoint, COUNT(*) as active_limits
+FROM rate_limit_states 
+WHERE window_end > NOW() 
+GROUP BY endpoint;
+
+-- 頻繁な違反者の特定
+SELECT identifier, COUNT(*) as violation_count
+FROM rate_limit_violations 
+WHERE created_at > NOW() - INTERVAL '24 hours'
+GROUP BY identifier 
+ORDER BY violation_count DESC 
+LIMIT 10;
+```
+```
 
 // 使用例：記事テーブル
 export const posts = pgTable('posts', {

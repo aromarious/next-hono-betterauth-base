@@ -1,16 +1,44 @@
-# CI/CDパイプライン設計ガイドライン
+# CI/CD技術仕様書作成ガイドライン
 
-WebService-Next-Hono-Base を基盤とするWebサービス開発において、GitHub Actions + Turbo を活用した高効率なCI/CDパイプラインの設計・運用ガイドラインを提供します。
+**WebService-Next-Hono-Base** を基盤として実サービスを開発する際の、CI/CDパイプライン技術仕様書作成における設計指針・テンプレートを提供します。
 
 ---
 
-## 🎯 ガイドラインの目的
+## 🎯 本ガイドラインの使い方
 
-このガイドラインは：
-- **高速・信頼性の高いCI/CDパイプラインの構築方法を定義**
-- **Turbo + pnpm を活用したモノレポ最適化戦略の提供**
-- **Infisical統合によるセキュアな環境変数管理の実現**
-- GitHub Actions + Next.js + Hono + PostgreSQL 構成での最適なデプロイメント設計
+### 対象読者
+- **DevOps設計者**: CI/CDパイプライン・インフラ自動化設計時
+- **技術仕様書作成者**: デプロイメント・運用自動化仕様書作成時  
+- **開発リーダー**: 開発フロー・リリース管理プロセス設計時
+
+### 活用場面
+- **CI/CD設計**: パイプライン・自動化・品質ゲート仕様検討時
+- **仕様書作成**: デプロイメント・環境管理・運用自動化仕様作成時
+- **環境管理**: 開発・ステージング・本番環境の構成管理時
+- **リリース管理**: バージョン管理・ロールバック・監視仕様策定時
+
+---
+
+## 🎯 WebService-Next-Hono-Base でのCI/CD設計原則
+
+### 本ベースプロジェクトのCI/CD技術構成
+このベースでは以下のCI/CD技術スタックを前提としています：
+
+| コンポーネント | 役割 | 仕様書での考慮点 |
+|---------------|------|------------------|
+| **GitHub Actions** | CI/CD自動化プラットフォーム | ワークフロー・トリガー・ジョブ設計 |
+| **Turbo** | モノレポビルド最適化 | キャッシュ戦略・並列実行設計 |
+| **pnpm** | 高速パッケージ管理 | 依存関係・ワークスペース管理 |
+| **Infisical** | シークレット・環境変数管理 | セキュア設定・環境分離設計 |
+
+### 技術仕様書で定義すべきCI/CD要素
+
+| CI/CD要素 | 技術仕様書での定義内容 | 本ベースでの実現方法 |
+|-----------|----------------------|---------------------|
+| **パイプライン設計** | ステージ・ジョブ・トリガー・承認フロー | GitHub Actions ワークフロー |
+| **ビルド最適化** | キャッシュ・並列実行・依存関係管理 | Turbo + pnpm統合 |
+| **環境管理** | 開発・ステージング・本番の設定分離 | Infisical環境管理 |
+| **品質保証** | テスト・リント・セキュリティチェック統合 | 自動化品質ゲート |
 
 ---
 
@@ -240,7 +268,179 @@ repo/
 
 ---
 
-## 🔄 継続的インテグレーション（CI）
+## � レートリミット設定のCI/CD統合
+
+### デプロイ時のレートリミット設定検証
+**環境別のレートリミット設定**を自動検証・適用する仕組み：
+
+#### パッケージ管理・環境変数設定
+```yaml
+# .github/workflows/deploy.yml（抜粋）
+- name: Install Rate Limit Package
+  run: |
+    # 環境別パッケージインストール
+    if [ "${{ github.event.inputs.environment }}" = "production" ]; then
+      pnpm add hono-rate-limiter redis
+    else
+      pnpm add @hono/rate-limiter
+    fi
+
+- name: Validate Rate Limit Configuration
+  run: |
+    # パッケージ固有の設定検証
+    pnpm run validate:rate-limits --package=${{ env.RATE_LIMIT_PACKAGE }}
+    
+    # Redis接続テスト（Redis使用時）
+    if [ "${{ env.RATE_LIMIT_PACKAGE }}" = "hono-rate-limiter" ]; then
+      node scripts/test-redis-connection.js
+    fi
+
+- name: Deploy Rate Limit Rules
+  run: |
+    # Infisicalから環境別設定取得
+    infisical export --env=${{ github.event.inputs.environment }} --format=dotenv > .env.deploy
+    
+    # レートリミット設定をクラウドプロバイダーに適用
+    node scripts/deploy-rate-limits.js --env=${{ github.event.inputs.environment }}
+```
+
+#### レートリミット設定検証スクリプト
+```typescript
+// scripts/validate-rate-limits.ts
+import { rateLimitConfigs } from '../packages/shared/src/config/rate-limits.js'
+
+interface RateLimitValidation {
+  endpoint: string
+  issues: string[]
+  severity: 'error' | 'warning' | 'info'
+}
+
+export async function validateRateLimitConfig(): Promise<RateLimitValidation[]> {
+  const validations: RateLimitValidation[] = []
+  
+  for (const [endpoint, config] of Object.entries(rateLimitConfigs)) {
+    const issues: string[] = []
+    
+    // 基本検証
+    if (!config.requests || config.requests <= 0) {
+      issues.push('リクエスト制限値が無効です')
+    }
+    
+    if (!config.windowMs || config.windowMs <= 0) {
+      issues.push('時間ウィンドウが無効です')
+    }
+    
+    // セキュリティ検証
+    if (endpoint.includes('/auth/') && config.requests > 10) {
+      issues.push('認証エンドポイントの制限が緩すぎます（推奨: ≤10回）')
+    }
+    
+    if (endpoint.includes('/admin/') && config.requests > 50) {
+      issues.push('管理者エンドポイントの制限が緩すぎます（推奨: ≤50回）')
+    }
+    
+    // 本番環境での厳格チェック
+    if (process.env.NODE_ENV === 'production') {
+      if (config.windowMs < 60000) { // 1分未満
+        issues.push('本番環境では1分以上の時間ウィンドウを推奨')
+      }
+    }
+    
+    if (issues.length > 0) {
+      validations.push({
+        endpoint,
+        issues,
+        severity: endpoint.includes('/auth/') ? 'error' : 'warning'
+      })
+    }
+  }
+  
+  return validations
+}
+
+// CI/CDで実行
+if (import.meta.main) {
+  const validations = await validateRateLimitConfig()
+  
+  const errors = validations.filter(v => v.severity === 'error')
+  const warnings = validations.filter(v => v.severity === 'warning')
+  
+  if (errors.length > 0) {
+    console.error('❌ レートリミット設定エラー:')
+    errors.forEach(({ endpoint, issues }) => {
+      console.error(`  ${endpoint}: ${issues.join(', ')}`)
+    })
+    process.exit(1)
+  }
+  
+  if (warnings.length > 0) {
+    console.warn('⚠️  レートリミット設定警告:')
+    warnings.forEach(({ endpoint, issues }) => {
+      console.warn(`  ${endpoint}: ${issues.join(', ')}`)
+    })
+  }
+  
+  console.log('✅ レートリミット設定検証完了')
+}
+```
+
+#### 環境別レートリミット設定
+```yaml
+# infisical設定例
+# Development環境
+RATE_LIMIT_AUTH_LOGIN=10/15m
+RATE_LIMIT_AUTH_REGISTER=5/1h
+RATE_LIMIT_API_GENERAL=200/1m
+RATE_LIMIT_API_ADMIN=100/1m
+
+# Staging環境
+RATE_LIMIT_AUTH_LOGIN=5/15m
+RATE_LIMIT_AUTH_REGISTER=3/1h
+RATE_LIMIT_API_GENERAL=100/1m
+RATE_LIMIT_API_ADMIN=50/1m
+
+# Production環境
+RATE_LIMIT_AUTH_LOGIN=5/15m
+RATE_LIMIT_AUTH_REGISTER=3/1h
+RATE_LIMIT_API_GENERAL=100/1m
+RATE_LIMIT_API_ADMIN=20/1m
+```
+
+### デプロイ後の監視・検証
+
+```yaml
+# .github/workflows/post-deploy-verify.yml
+name: Post Deploy Verification
+
+on:
+  workflow_run:
+    workflows: ["Deploy to Production"]
+    types: [completed]
+
+jobs:
+  verify-rate-limits:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Verify Rate Limit Functionality
+        run: |
+          # レートリミットが正常に動作するかテスト
+          node scripts/verify-rate-limits.js --target=${{ secrets.DEPLOY_URL }}
+          
+      - name: Create Rate Limit Monitoring Dashboard
+        run: |
+          # Grafana ダッシュボードを自動更新
+          curl -X POST "${{ secrets.GRAFANA_URL }}/api/dashboards/db" \
+            -H "Authorization: Bearer ${{ secrets.GRAFANA_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d @monitoring/dashboards/rate-limits.json
+```
+
+---
+
+## �🔄 継続的インテグレーション（CI）
 
 ### メインCIワークフロー
 
@@ -266,10 +466,17 @@ jobs:
       packages: ${{ steps.changes.outputs.packages }}
       apps: ${{ steps.changes.outputs.apps }}
       docs: ${{ steps.changes.outputs.docs }}
+      rate-limits: ${{ steps.changes.outputs.rate-limits }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v2
         id: changes
+        with:
+          filters: |
+            rate-limits:
+              - 'packages/shared/src/config/rate-limits.ts'
+              - 'apps/api/src/middleware/rate-limit.ts'
+              - 'scripts/validate-rate-limits.ts'
         with:
           filters: |
             packages:

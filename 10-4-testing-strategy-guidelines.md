@@ -1,16 +1,44 @@
-# テスト戦略ガイドライン
+# テスト戦略技術仕様書作成ガイドライン
 
-WebService-Next-Hono-Base を基盤とするWebサービス開発において、包括的なテスト戦略の設計・実装ガイドラインを提供します。
+**WebService-Next-Hono-Base** を基盤として実サービスを開発する際の、テスト戦略における技術仕様書作成・設計指針を提供します。
 
 ---
 
-## 🎯 ガイドラインの目的
+## 🎯 本ガイドラインの使い方
 
-このガイドラインは：
-- **品質保証の体系化**: Unit/Integration/E2E テストの戦略的実装
-- **CI/CD統合**: 自動化されたテストパイプラインの構築方法
-- **型安全テスト**: TypeScript + Drizzle + OpenAPI を活用した型安全なテスト実装
-- Next.js + Hono + Better Auth 構成での最適なテスト設計を実現
+### 対象読者
+- **QA設計者**: テスト戦略・品質保証プロセス設計時
+- **技術仕様書作成者**: テスト仕様書・品質管理仕様作成時  
+- **開発リーダー**: テスト自動化・CI/CD統合設計時
+
+### 活用場面
+- **品質戦略策定**: Unit/Integration/E2Eテストの方針・範囲決定時
+- **テスト仕様書作成**: テストケース・自動化仕様・品質基準作成時
+- **CI/CD設計**: テストパイプライン・品質ゲート設計時
+- **テスト環境設計**: データベース・外部サービスモック仕様策定時
+
+---
+
+## 🎯 WebService-Next-Hono-Base でのテスト設計原則
+
+### 本ベースプロジェクトのテスト技術構成
+このベースでは以下のテスト技術スタックを前提としています：
+
+| コンポーネント | 役割 | 仕様書での考慮点 |
+|---------------|------|------------------|
+| **Vitest** | 高速Unitテスト | テストケース設計・モック戦略 |
+| **Playwright** | E2Eテスト・ブラウザ自動化 | シナリオ設計・環境設定 |
+| **MSW** | APIモック・ネットワーク制御 | モック仕様・テストデータ設計 |
+| **Testcontainers** | 統合テスト環境 | データベース・外部サービステスト |
+
+### 技術仕様書で定義すべきテスト要素
+
+| テスト要素 | 技術仕様書での定義内容 | 本ベースでの実現方法 |
+|-----------|----------------------|---------------------|
+| **Unit テスト** | 関数・コンポーネント単位の仕様・期待値 | Vitest + 型安全テスト |
+| **Integration テスト** | API・DB統合動作の仕様・シナリオ | Hono + Testcontainers |
+| **E2E テスト** | ユーザーシナリオ・画面遷移の仕様 | Playwright + 自動化 |
+| **品質基準** | カバレッジ・パフォーマンス・信頼性指標 | CI/CD統合 + 品質ゲート |
 
 ---
 
@@ -250,6 +278,244 @@ describe('Auth Routes', () => {
     })
   })
 })
+```
+
+### レートリミットパッケージのテスト設計
+
+#### パッケージ別テスト戦略
+```markdown
+## レートリミットパッケージ別テスト要件
+
+### @hono/rate-limiter（メモリベース）
+- 単一インスタンステスト: メモリ状態の検証
+- リセット機能テスト: プロセス再起動時の挙動
+- 軽量テスト: 高速実行・CI/CD最適化
+
+### hono-rate-limiter（Redis連携）
+- 分散テスト: 複数インスタンス間の制限共有
+- Redis接続テスト: 接続失敗時のフォールバック
+- 永続化テスト: Redis再起動時の状態復旧
+
+### カスタム実装
+- 複雑ロジックテスト: 独自制限アルゴリズム
+- パフォーマンステスト: 大量リクエスト処理
+- 統合テスト: 他システムとの連携
+```
+
+```typescript
+// packages/api/__tests__/rate-limit.test.ts
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { testClient } from '../test-utils/client.js'
+import { clearRateLimitState, createRedisTestClient } from '../test-utils/rate-limit.js'
+import Redis from 'ioredis'
+
+// パッケージ別テスト設定
+const rateLimitPackage = process.env.RATE_LIMIT_PACKAGE || 'hono-rate-limiter'
+const redisClient = createRedisTestClient() // Redisテスト用クライアント
+
+describe('Rate Limit Middleware', () => {
+  beforeEach(async () => {
+    // テスト前にレートリミット状態をクリア
+    await clearRateLimitState()
+  })
+
+  describe('Authentication Endpoints Rate Limiting', () => {
+    it('should allow requests within rate limit', async () => {
+      // Arrange: ログインエンドポイントの制限は5回/15分
+      const loginData = {
+        email: 'test@example.com',
+        password: 'wrongpassword'
+      }
+
+      // Act: 制限内でリクエスト送信
+      const responses = []
+      for (let i = 0; i < 3; i++) {
+        const response = await testClient.auth.login.$post({
+          json: loginData
+        })
+        responses.push(response)
+      }
+
+      // Assert: すべて正常に処理される（認証は失敗するが制限はかからない）
+      responses.forEach(response => {
+        expect(response.status).not.toBe(429)
+      })
+    })
+
+    it('should block requests exceeding rate limit', async () => {
+      // Arrange
+      const loginData = {
+        email: 'test@example.com', 
+        password: 'wrongpassword'
+      }
+
+      // Act: 制限を超えてリクエスト送信（6回目で制限）
+      const responses = []
+      for (let i = 0; i < 6; i++) {
+        const response = await testClient.auth.login.$post({
+          json: loginData
+        })
+        responses.push(response)
+      }
+
+      // Assert: 6回目は429エラー
+      expect(responses[5].status).toBe(429)
+      
+      const errorData = await responses[5].json()
+      expect(errorData.error).toBe('rate_limit_exceeded')
+      expect(errorData.retry_after).toBeGreaterThan(0)
+    })
+
+    it('should include rate limit headers in response', async () => {
+      // Arrange
+      const loginData = {
+        email: 'test@example.com',
+        password: 'wrongpassword'
+      }
+
+      // Act
+      const response = await testClient.auth.login.$post({
+        json: loginData
+      })
+
+      // Assert: レートリミット関連ヘッダーが含まれる
+      expect(response.headers.get('X-RateLimit-Limit')).toBe('5')
+      expect(response.headers.get('X-RateLimit-Remaining')).toBe('4')
+      expect(response.headers.get('X-RateLimit-Reset')).toBeTruthy()
+    })
+
+    it('should reset rate limit after time window', async () => {
+      // Arrange: タイムウィンドウを短く設定（テスト用）
+      const shortWindowConfig = { windowMs: 1000, max: 2 } // 1秒で2回
+      
+      // Act: 制限まで使い切る
+      await testClient.auth.login.$post({
+        json: { email: 'test@example.com', password: 'wrong' }
+      })
+      await testClient.auth.login.$post({
+        json: { email: 'test@example.com', password: 'wrong' }
+      })
+      
+      // 3回目は制限される
+      const blockedResponse = await testClient.auth.login.$post({
+        json: { email: 'test@example.com', password: 'wrong' }
+      })
+      expect(blockedResponse.status).toBe(429)
+      
+      // 時間経過後は再び許可される
+      await new Promise(resolve => setTimeout(resolve, 1100))
+      
+      const allowedResponse = await testClient.auth.login.$post({
+        json: { email: 'test@example.com', password: 'wrong' }
+      })
+      expect(allowedResponse.status).not.toBe(429)
+    })
+  })
+
+  describe('API Endpoints Rate Limiting', () => {
+    it('should apply different limits for different user types', async () => {
+      // Arrange: 管理者と一般ユーザーで制限が異なる
+      const regularUserToken = await getTestUserToken('user')
+      const adminUserToken = await getTestUserToken('admin')
+
+      // Act & Assert: 一般ユーザーは制限が厳しい
+      const regularUserRequests = []
+      for (let i = 0; i < 50; i++) {
+        const response = await testClient.api.users.$get({
+          headers: { Authorization: `Bearer ${regularUserToken}` }
+        })
+        regularUserRequests.push(response)
+      }
+      
+      // 管理者はより多くのリクエストが可能
+      const adminRequests = []
+      for (let i = 0; i < 100; i++) {
+        const response = await testClient.api.admin.users.$get({
+          headers: { Authorization: `Bearer ${adminUserToken}` }
+        })
+        adminRequests.push(response)
+      }
+      
+      // 制限の違いを確認
+      expect(regularUserRequests.some(r => r.status === 429)).toBe(true)
+      expect(adminRequests.every(r => r.status !== 429)).toBe(true)
+    })
+
+    it('should handle concurrent requests correctly', async () => {
+      // Arrange: 同時リクエストのテスト
+      const userToken = await getTestUserToken('user')
+      
+      // Act: 同時に大量リクエスト送信
+      const promises = Array.from({ length: 20 }, () =>
+        testClient.api.users.$get({
+          headers: { Authorization: `Bearer ${userToken}` }
+        })
+      )
+      
+      const responses = await Promise.all(promises)
+      
+      // Assert: 正しく制限が適用される
+      const successCount = responses.filter(r => r.status === 200).length
+      const limitedCount = responses.filter(r => r.status === 429).length
+      
+      expect(successCount).toBeLessThanOrEqual(10) // 制限値以下
+      expect(limitedCount).toBeGreaterThan(0) // 一部は制限される
+    })
+  })
+
+  describe('Rate Limit Bypass and Edge Cases', () => {
+    it('should not affect requests with different IPs', async () => {
+      // Arrange: 異なるIPからのリクエスト
+      const loginData = { email: 'test@example.com', password: 'wrong' }
+      
+      // Act: IP1で制限まで使い切る
+      for (let i = 0; i < 5; i++) {
+        await testClient.auth.login.$post({
+          json: loginData,
+          headers: { 'X-Forwarded-For': '192.168.1.1' }
+        })
+      }
+      
+      // IP2からは正常にリクエスト可能
+      const response = await testClient.auth.login.$post({
+        json: loginData,
+        headers: { 'X-Forwarded-For': '192.168.1.2' }
+      })
+      
+      // Assert
+      expect(response.status).not.toBe(429)
+    })
+
+    it('should handle malformed rate limit attempts', async () => {
+      // Arrange: 不正なヘッダーやデータでの制限回避試行
+      const maliciousRequests = [
+        { headers: { 'X-Forwarded-For': 'invalid-ip' } },
+        { headers: { 'User-Agent': '' } },
+        { headers: { 'X-Real-IP': '127.0.0.1' } },
+      ]
+      
+      // Act & Assert: すべて適切に制限される
+      for (const request of maliciousRequests) {
+        const responses = []
+        for (let i = 0; i < 6; i++) {
+          const response = await testClient.auth.login.$post({
+            json: { email: 'test@example.com', password: 'wrong' },
+            headers: request.headers
+          })
+          responses.push(response)
+        }
+        
+        expect(responses[5].status).toBe(429)
+      }
+    })
+  })
+})
+
+// テストユーティリティ
+async function getTestUserToken(role: 'user' | 'admin'): Promise<string> {
+  // テスト用トークン生成
+  return 'test-token-' + role
+}
 ```
 
 ### ドメイン層・アプリケーション層のテスト
