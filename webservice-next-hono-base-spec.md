@@ -1,9 +1,9 @@
-# Stack 1 (Webサービス構成仕様書)
+# WebService-Next-Hono-Base (Webサービス構成仕様書)
 
 ## 🧩 全体構成概要
 
 本仕様書は、Next.js + Hono + OpenAPI + Better Auth + Drizzle + PostgreSQL を用いた
-Webサービス（ログイン機能付き）開発スタックの標準構成を定義するものです。
+Webサービス（ログイン機能付き）開発ベース構成を定義するものです。
 
 ---
 
@@ -69,7 +69,7 @@ repo/
 ```yaml
 openapi: 3.0.3
 info:
-  title: Stack1 API
+  title: WebService-Next-Hono API
   version: 0.1.0
 servers:
   - url: http://localhost:8787
@@ -144,11 +144,11 @@ paths:
 
 ## 8. 今後の拡張
 
-- iOSアプリ（Stack 2）との契約共有（OpenAPIベース）
+- 他のベース構成（モバイルアプリ等）との契約共有（OpenAPIベース）
 - Observability（OTel, Sentry）導入
 - Temporal / Cloud Tasks で非同期ジョブ追加
 - RBACの共通化（role, permissionをアプリケーション層に）
 
 ---
 
-© 2025 ChatGPT (GPT-5) | Stack1 Specification
+© 2025 ChatGPT (GPT-5) | WebService-Next-Hono-Base Specification
