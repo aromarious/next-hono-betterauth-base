@@ -52,7 +52,7 @@ WebService-Next-Hono-Base プロジェクトを基盤として実際のWebサー
   - インデックス戦略・パフォーマンス最適化
   - 制約・外部キー・データ整合性
   - マイグレーション戦略・バージョン管理
-  - 環境別データ管理（dev/staging/prod）
+  - 環境別データ管理（development/staging/production）
 
 #### 4. テスト戦略仕様書
 - **ファイル名**: `testing-strategy-specifications.md`
@@ -90,7 +90,7 @@ WebService-Next-Hono-Base プロジェクトを基盤として実際のWebサー
 - **含むべき内容**:
   - Docker コンテナ戦略・マルチステージビルド
   - クラウドインフラ設計（AWS/GCP/Azure）
-  - 環境分離戦略（Dev/Staging/Prod）
+  - 環境分離戦略（Development/Staging/Production）
   - ロードバランサー・オートスケーリング
   - SSL/TLS証明書管理・CDN設定
 

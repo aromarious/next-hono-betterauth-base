@@ -35,12 +35,19 @@ graph LR
 ```
 
 ### 3. 環境分離戦略
+
+| 環境名 | ブランチ | データベース名 | 用途 |
+|-------|----------|-------------|------|
+| **Development** | `feature/*` | `webservice_dev` | 機能開発・PR確認 |
+| **Staging** | `develop` | `webservice_staging` | 統合テスト・受入テスト |
+| **Production** | `main` + `v*.*.*` | `webservice_production` | 本番稼働 |
+
 ```mermaid
 graph TB
-    A[本番DB] --> B[ステージングDB]
-    B --> C[開発DB]
-    C --> D[テストDB]
-    E[ローカルDB] --> C
+    A[Production DB<br/>webservice_production] --> B[Staging DB<br/>webservice_staging]
+    B --> C[Development DB<br/>webservice_dev]  
+    C --> D[Test DB<br/>webservice_test]
+    E[Local DB<br/>各開発者ローカル] --> C
 ```
 
 ---
@@ -410,18 +417,22 @@ export class UserRepository {
 ### マイグレーション実行フロー
 
 ```bash
-# 開発環境でのマイグレーション
+# 環境別マイグレーション手順
+
 # 1. スキーマ変更後、マイグレーション生成
 pnpm db:generate
 
 # 2. 生成されたマイグレーションをレビュー
 # ops/db/migrations/ 内のSQLファイルを確認
 
-# 3. 開発環境に適用
-pnpm db:migrate
+# 3. Development環境に適用（ローカル開発）
+infisical run --env=development -- pnpm db:migrate
 
-# 4. 本番環境への適用（慎重に）
-infisical run --env=prod -- pnpm db:migrate:prod
+# 4. Staging環境に適用（統合テスト）
+infisical run --env=staging -- pnpm db:migrate
+
+# 5. Production環境への適用（本番デプロイ時・慎重に）
+infisical run --env=production -- pnpm db:migrate:prod
 ```
 
 ### package.json スクリプト設定

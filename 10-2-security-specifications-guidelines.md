@@ -121,8 +121,9 @@ WebService-Next-Hono-Base を基盤とするWebサービス開発において、
 ## ネットワークセキュリティ
 
 ### CORS設定
-- 開発環境Origin: http://localhost:3000
-- 本番環境Origin: https://yourdomain.com
+- Development環境Origin: http://localhost:3000
+- Staging環境Origin: https://staging.yourdomain.com  
+- Production環境Origin: https://yourdomain.com
 - その他許可Origin: ___________
 
 ### CSP設定

@@ -36,7 +36,7 @@ docker-compose --version
 
 - [ ] **Infisical アカウント作成** ([infisical.com](https://infisical.com))
 - [ ] **新しいプロジェクト作成** (例: `webservice-next-hono-base`)
-- [ ] **環境の作成** (`dev`, `staging`, `prod`)
+- [ ] **環境の作成** (`development`, `staging`, `production`)
 - [ ] **チームメンバーの招待** (必要に応じて)
 
 ### 📊 データベースの準備
@@ -51,13 +51,13 @@ docker-compose --version
 
 Infisical プロジェクトに以下の環境変数を設定：
 
-#### 開発環境 (dev)
-```
-# データベース
+#### Development環境 (feature/PR用)
+```bash
+# データベース  
 DATABASE_URL=postgresql://user:password@localhost:5432/webservice_dev
 
 # 認証 (Better Auth)
-BETTER_AUTH_SECRET=your-super-secret-key-here
+BETTER_AUTH_SECRET=dev-secret-key-for-testing
 BETTER_AUTH_URL=http://localhost:3000
 
 # API設定
@@ -68,13 +68,30 @@ API_CORS_ORIGIN=http://localhost:3000
 NEXTAUTH_URL=http://localhost:3000
 ```
 
-#### 本番環境 (prod)
-```
+#### Staging環境 (develop ブランチ)
+```bash
 # データベース
-DATABASE_URL=postgresql://user:password@prod-db:5432/webservice_prod
+DATABASE_URL=postgresql://staging_user:staging_pass@staging-db:5432/webservice_staging
 
 # 認証
-BETTER_AUTH_SECRET=production-secret-key
+BETTER_AUTH_SECRET=staging-secret-key-changeme
+BETTER_AUTH_URL=https://staging.yourdomain.com
+
+# API設定
+API_PORT=8787
+API_CORS_ORIGIN=https://staging.yourdomain.com
+
+# Next.js
+NEXTAUTH_URL=https://staging.yourdomain.com
+```
+
+#### Production環境 (main + v*.*.* タグ)
+```bash
+# データベース
+DATABASE_URL=postgresql://prod_user:prod_secure_pass@prod-db:5432/webservice_production
+
+# 認証
+BETTER_AUTH_SECRET=ultra-secure-production-secret-key
 BETTER_AUTH_URL=https://yourdomain.com
 
 # API設定
