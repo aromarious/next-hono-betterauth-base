@@ -29,7 +29,6 @@ repo/
     application/          # ユースケース層
     infrastructure/       # DB, 外部I/F
     shared-openapi/       # openapi.yaml + 生成物
-    shared-config/        # eslint, tsconfig, tailwind 等
   ops/
     db/                   # Drizzle schema & migrations
   dev/                    # ✅ 開発環境用設定・ツール
