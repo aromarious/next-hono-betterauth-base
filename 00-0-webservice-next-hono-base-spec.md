@@ -1,9 +1,64 @@
-# WebService-Next-Hono-Base (Webサービス構成仕様書)
+# WebService-Next-Hono-Base
+
+## 🎯 プロジェクトの目的
+
+**WebService-Next-Hono-Base** は、モダンなWebサービス開発のための**再利用可能な基盤プロジェクト**です。
+
+### 🚀 何を解決するのか
+- **開発速度の向上**: 新しいWebサービスを始める際の初期セットアップ時間を大幅短縮
+- **品質の標準化**: ベストプラクティスに基づいた一貫性のある開発環境の提供
+- **技術負債の削減**: 契約駆動開発により、フロントエンド・バックエンド間の整合性を自動保証
+- **セキュリティの確保**: 認証・認可・環境変数管理が最初から適切に実装済み
+
+### 🎯 対象となる開発チーム
+- **スタートアップ**: MVPから本格運用まで対応可能な基盤が欲しいチーム
+- **企業の新規プロジェクト**: 社内標準に準拠したWebサービス基盤が必要なチーム
+- **個人開発者**: 高品質なWebサービスを効率的に開発したい開発者
+
+### 💡 コアコンセプト
+1. **契約駆動開発（Contract First）**: OpenAPIを単一の契約とし、型安全性を自動保証
+2. **即座に本格開発開始**: 認証・DB・API基盤が最初から完備、初日からビジネスロジックに集中可能
+3. **再利用性**: プロジェクト固有の要素は最小限に、最大限の汎用性を実現
+4. **開発者体験（DX）**: 統一された設定とワークフローで一貫性のある開発環境
+
+---
+
+## 📚 ドキュメント索引
+
+このプロジェクトには以下の技術仕様書・ガイドラインが含まれています：
+
+### 📖 メイン仕様書・ワークフロー（読む順番）
+| ファイル | 内容 | 対象者 |
+|----------|------|--------|
+| **[00-0-webservice-next-hono-base-spec.md](./00-0-webservice-next-hono-base-spec.md)** | **本ファイル** - プロジェクト全体概要 | 全員 |
+| **[00-1-development-workflow.md](./00-1-development-workflow.md)** | 日々の開発ワークフロー・環境構築手順 | 開発者・運用者 |
+| **[00-2-required-technical-specifications.md](./00-2-required-technical-specifications.md)** | 必要な技術仕様書一覧・作成ロードマップ | プロジェクトマネージャー |
+
+### 🔧 技術ガイドライン（実装時に参照）
+| ファイル | 内容 | 作成状況 | 対象者 |
+|----------|------|----------|--------|
+| **[10-0-api-design-guidelines.md](./10-0-api-design-guidelines.md)** | RESTful API設計標準・URL設計パターン | ✅ 完成 | API開発者 |
+| **[10-1-openapi-specifications-guidelines.md](./10-1-openapi-specifications-guidelines.md)** | OpenAPI仕様書作成・契約駆動開発手順 | ✅ 完成 | API設計者 |
+| **[10-2-security-specifications-guidelines.md](./10-2-security-specifications-guidelines.md)** | セキュリティ仕様・認証設計ガイドライン | ✅ 完成 | セキュリティ担当者 |
+| **[10-3-database-design-guidelines.md](./10-3-database-design-guidelines.md)** | データベース設計・Drizzle ORM活用ガイド | ✅ 完成 | DB設計者 |
+
+
+
+### 🚧 今後作成予定のガイドライン
+| 分野 | 優先度 | 予定内容 |
+|------|--------|----------|
+| データベース設計 | **高** | Drizzle ORM + PostgreSQL設計標準 |
+| テスト戦略 | **高** | Unit/Integration/E2E テスト戦略 |
+| CI/CDパイプライン | **中** | GitHub Actions + Turbo設定標準 |
+| 監視・ログ戦略 | **中** | Observability実装ガイド |
+| パフォーマンス最適化 | **低** | 最適化手法・測定方法 |
+
+---
 
 ## 🧩 全体構成概要
 
-本仕様書は、Next.js + Hono + OpenAPI + Better Auth + Drizzle + PostgreSQL を用いた
-Webサービス（ログイン機能付き）開発ベース構成を定義するものです。
+本プロジェクトは、Next.js + Hono + OpenAPI + Better Auth + Drizzle + PostgreSQL を用いた
+**認証機能付きWebサービス開発基盤**を提供します。
 
 ---
 
@@ -289,12 +344,52 @@ paths:
 
 ---
 
-## 📚 関連ドキュメント
+## � クイックスタート
 
-- [development-workflow.md](./development-workflow.md) - 詳細な開発手順
-- [base-construction-tasks.md](./base-construction-tasks.md) - ベース構築タスク
-- [api-design-guidelines.md](./api-design-guidelines.md) - API設計ガイドライン
+### 新しいWebサービスを始める場合
+1. **[00-1-development-workflow.md](./00-1-development-workflow.md)** で環境構築
+2. このベースプロジェクトをforkまたはdownloadして使用開始
+3. **[10-1-openapi-specifications-guidelines.md](./10-1-openapi-specifications-guidelines.md)** でAPI設計開始
+
+### 既存プロジェクトに適用する場合
+1. **[10-0-api-design-guidelines.md](./10-0-api-design-guidelines.md)** でAPI設計方針確認
+2. **[10-2-security-specifications-guidelines.md](./10-2-security-specifications-guidelines.md)** でセキュリティ要件確認
+3. 段階的に基盤コンポーネントを導入
+
+---
+
+## 📞 サポート・質問
+
+- **Issue**: このリポジトリのIssueで質問・バグ報告
+- **改善提案**: Pull Requestで改良案をお送りください
+- **利用報告**: どのようなプロジェクトで活用されているかお知らせいただけると嬉しいです
+
+---
+
+## 📈 プロジェクト進捗
+
+### Phase 1: 基盤ドキュメント作成 ✅ **完了**
+- [x] プロジェクト仕様書・ドキュメント索引（00-0）
+- [x] 開発ワークフロー・Infisical統合（00-1）
+- [x] 技術仕様書一覧・ロードマップ（00-2）
+- [x] API設計ガイドライン（10-0）
+- [x] OpenAPI仕様書作成ガイドライン（10-1）
+- [x] セキュリティ仕様ガイドライン（10-2）
+- [x] データベース設計ガイドライン（10-3）
+
+### Phase 2: 技術ガイドライン拡充 🚧 **進行中**
+- [ ] テスト戦略ガイドライン（10-4）
+- [ ] CI/CDパイプライン設計ガイドライン（10-5）
+- [ ] 監視・ログ戦略ガイドライン（10-6）
+- [ ] パフォーマンス最適化ガイドライン（10-7）
+
+### Phase 3: 実装ベース提供 📋 **計画中**
+- [ ] Level 1: スケルトンベース実装
+- [ ] Level 2: 動作ベース実装
+- [ ] Level 3: 認証ベース実装（推奨提供レベル）
 
 ---
 
 © 2025 WebService-Next-Hono-Base Development Team
+
+**🎯 Vision**: すべてのWebサービス開発チームが、高品質で安全な基盤の上で、本来のビジネス価値創造に集中できる世界を作る。
