@@ -140,12 +140,20 @@ mkdir -p webservice-next-hono-base/{apps/{web,api},packages/{domain,application,
 - [ ] `openapi.yaml` - 基本スキーマ
 - [ ] Hello World エンドポイントの定義
 - [ ] 型生成スクリプトの設定
+- [ ] API設計ガイドラインに準拠した設計
 
 ### 5. コード生成 (dev/codegen/)
 
 - [ ] OpenAPI型生成スクリプト
 - [ ] Drizzle型生成スクリプト
 - [ ] package.json scripts設定
+
+### 6. 基本的なCI/CD設定
+
+- [ ] `.github/workflows/ci.yml` - 基本CI設定
+- [ ] `.github/workflows/cd.yml` - 基本CD設定
+- [ ] GitHub Actions secrets設定
+- [ ] Turbo でのキャッシュ最適化
 
 ---
 
@@ -209,12 +217,226 @@ CREATE TABLE sessions (
 - [ ] 認証エンドポイントの定義
 - [ ] ユーザー情報のスキーマ定義
 - [ ] エラーレスポンスの定義
+- [ ] API設計ガイドラインに準拠した統一設計
 
 ### 7. ドメイン・アプリケーション層
 
 - [ ] `packages/domain/` - ユーザードメインロジック
 - [ ] `packages/application/` - 認証ユースケース
 - [ ] `packages/infrastructure/` - DB操作・外部I/F
+
+---
+
+## 🔄 CI/CD パイプライン構築
+
+### Level 2: 基本的なCI/CD
+
+#### 継続的インテグレーション (CI)
+- [ ] **コード品質チェック**
+  ```yaml
+  # .github/workflows/ci.yml
+  - Lint (ESLint + Prettier)
+  - 型チェック (TypeScript)
+  - テスト実行 (Jest/Vitest)
+  - OpenAPI スキーマ検証
+  ```
+
+- [ ] **ビルド検証**
+  ```yaml
+  - Next.js ビルド
+  - Hono ビルド
+  - Docker イメージビルド
+  ```
+
+- [ ] **セキュリティチェック**
+  ```yaml
+  - 依存関係脆弱性スキャン
+  - Secretsリーク検出
+  ```
+
+#### 継続的デプロイメント (CD)
+- [ ] **環境別デプロイ**
+  ```yaml
+  # .github/workflows/cd.yml
+  - Development 環境 (main ブランチ)
+  - Staging 環境 (release ブランチ)
+  - Production 環境 (タグベース)
+  ```
+
+- [ ] **Infisical 統合**
+  ```yaml
+  - 環境変数の自動注入
+  - シークレット管理
+  ```
+
+### Level 3: 高度なCI/CD機能
+
+#### テスト戦略
+- [ ] **多段階テスト**
+  ```yaml
+  - 単体テスト (packages/*)
+  - 統合テスト (API + DB)
+  - E2E テスト (Playwright)
+  - 認証フローテスト
+  ```
+
+- [ ] **データベーステスト**
+  ```yaml
+  - PostgreSQL Test Container
+  - マイグレーションテスト
+  - シードデータテスト
+  ```
+
+#### デプロイ戦略
+- [ ] **Blue-Green デプロイ**
+- [ ] **カナリアリリース**
+- [ ] **ロールバック機能**
+
+### Level 4: 本番運用レベルCI/CD
+
+#### 監視・アラート
+- [ ] **パフォーマンス監視**
+  ```yaml
+  - Lighthouse CI
+  - Bundle サイズ監視
+  - API レスポンス時間
+  ```
+
+- [ ] **品質ゲート**
+  ```yaml
+  - テストカバレッジ閾値
+  - セキュリティスコア
+  - パフォーマンス指標
+  ```
+
+#### インフラ管理
+- [ ] **Infrastructure as Code**
+  ```yaml
+  - Terraform / Pulumi
+  - Docker Compose 本番設定
+  - Kubernetes マニフェスト
+  ```
+
+---
+
+## 📁 CI/CD ファイル構成
+
+### GitHub Actions ワークフロー
+
+```
+.github/
+  workflows/
+    ci.yml           # 基本的なCI（Lint, Test, Build）
+    cd-dev.yml       # 開発環境デプロイ
+    cd-staging.yml   # ステージング環境デプロイ
+    cd-prod.yml      # 本番環境デプロイ
+    security.yml     # セキュリティスキャン
+    performance.yml  # パフォーマンステスト
+  dependabot.yml     # 依存関係自動更新
+```
+
+### 設定ファイル
+
+```
+dev/
+  ci/
+    jest.config.js     # テスト設定
+    playwright.config.js  # E2Eテスト設定
+    lighthouse.config.js  # パフォーマンステスト
+    security.config.js    # セキュリティスキャン設定
+```
+
+---
+
+## 🔧 CI/CD 実装タスク詳細
+
+### 1. 基本CI設定 (.github/workflows/ci.yml)
+
+```yaml
+name: CI
+on: [push, pull_request]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+      
+      # 依存関係インストール
+      - run: pnpm install --frozen-lockfile
+      
+      # Lint & Format
+      - run: pnpm lint
+      - run: pnpm format:check
+      
+      # 型チェック
+      - run: pnpm type-check
+      
+      # OpenAPI検証
+      - run: pnpm openapi:validate
+      
+      # テスト実行
+      - run: pnpm test
+      
+      # ビルド
+      - run: pnpm build
+```
+
+### 2. 環境別デプロイ設定
+
+- [ ] **開発環境デプロイ**
+  ```yaml
+  # main ブランチにpush時
+  - Infisical dev環境の環境変数使用
+  - 開発用データベース接続
+  - 自動デプロイ
+  ```
+
+- [ ] **ステージング環境デプロイ**
+  ```yaml
+  # release/* ブランチ作成時
+  - Infisical staging環境の環境変数使用
+  - 本番相当のデータベース
+  - マニュアル承認後デプロイ
+  ```
+
+- [ ] **本番環境デプロイ**
+  ```yaml
+  # v*.*.* タグ作成時
+  - Infisical prod環境の環境変数使用
+  - 本番データベース
+  - マニュアル承認 + ロールバック対応
+  ```
+
+### 3. Infisical統合
+
+```yaml
+# GitHub Actions with Infisical
+- name: Deploy with Infisical
+  run: |
+    # Infisical CLI インストール
+    npm install -g @infisical/cli
+    
+    # 認証（GitHub Secrets使用）
+    infisical login --method=universal-auth \
+      --client-id=${{ secrets.INFISICAL_CLIENT_ID }} \
+      --client-secret=${{ secrets.INFISICAL_CLIENT_SECRET }}
+    
+    # 環境変数を注入してデプロイ
+    infisical run --env=prod -- pnpm deploy
+```
+
+### 4. テスト環境設定
+
+- [ ] **PostgreSQL Test Container**
+- [ ] **Redis Test Container**
+- [ ] **E2E テスト用のテストデータ**
+- [ ] **認証フローの自動テスト**
 
 ---
 
@@ -261,6 +483,14 @@ CREATE TABLE sessions (
 - [ ] OpenAPI型生成が正常に動作
 - [ ] フロントエンド・バックエンド間の型の整合性
 - [ ] TypeScriptコンパイルが正常
+
+#### CI/CD パイプライン
+- [ ] GitHub Actions ワークフローが正常動作
+- [ ] Lint・テスト・ビルドが自動実行
+- [ ] Infisical統合が正常動作
+- [ ] 環境別デプロイが機能
+- [ ] セキュリティチェックが実行
+- [ ] テストカバレッジが適切
 
 #### ドキュメント
 - [ ] README.mdが完全

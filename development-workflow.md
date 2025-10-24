@@ -477,9 +477,11 @@ infisical run --env=dev -- printenv | grep -E "(DATABASE|API|AUTH)"
 
 ---
 
-## �📚 関連ドキュメント
+##  関連ドキュメント
 
 - [webservice-next-hono-base-spec.md](./webservice-next-hono-base-spec.md) - プロジェクト全体仕様
+- [base-construction-tasks.md](./base-construction-tasks.md) - ベース構築タスク
+- [api-design-guidelines.md](./api-design-guidelines.md) - API設計ガイドライン
 - [packages/shared-openapi/README.md](./packages/shared-openapi/README.md) - OpenAPI 仕様詳細
 - [ops/db/README.md](./ops/db/README.md) - データベーススキーマ管理
 - [dev/README.md](./dev/README.md) - 開発環境設定
