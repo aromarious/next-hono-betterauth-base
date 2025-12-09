@@ -7,6 +7,7 @@ WebService-Next-Hono-Base プロジェクトを基盤として実際のWebサー
 ## 📋 仕様書作成の考え方
 
 ### ベースプロジェクトとしての方針
+
 - **具体的な仕様書ではなく、仕様書作成ガイドラインを提供**
 - 各プロジェクトの要件に応じてカスタマイズ可能
 - チェックリスト・テンプレート形式で実用性を重視
@@ -18,6 +19,7 @@ WebService-Next-Hono-Base プロジェクトを基盤として実際のWebサー
 ### Phase 1: 基盤実装に必須（Level 3 認証ベース完成）
 
 #### 1. セキュリティ仕様書
+
 - **ファイル名**: `security-specifications.md`
 - **作成ガイドライン**: ✅ [security-specifications-guidelines.md](./security-specifications-guidelines.md)
 - **目的**: 認証・認可・データ保護・脆弱性対策の詳細定義
@@ -30,6 +32,7 @@ WebService-Next-Hono-Base プロジェクトを基盤として実際のWebサー
   - 脆弱性対策（XSS・CSRF・SQLインジェクション）
 
 #### 2. OpenAPI仕様書
+
 - **ファイル名**: `openapi-specifications.md` + `packages/shared-openapi/openapi.yaml`
 - **作成ガイドライン**: 🚧 `openapi-specifications-guidelines.md` *(要作成)*
 - **参考**: [api-design-guidelines.md](./api-design-guidelines.md) *(設計原則・パターン)*
@@ -43,6 +46,7 @@ WebService-Next-Hono-Base プロジェクトを基盤として実際のWebサー
   - 契約駆動開発ワークフロー（設計→生成→実装）
 
 #### 3. データベース設計仕様書
+
 - **ファイル名**: `database-design-specifications.md`
 - **作成ガイドライン**: 🚧 `database-design-guidelines.md` *(要作成)*
 - **目的**: Drizzleを使った型安全なDB設計の標準化
@@ -55,6 +59,7 @@ WebService-Next-Hono-Base プロジェクトを基盤として実際のWebサー
   - 環境別データ管理（development/staging/production）
 
 #### 4. テスト戦略仕様書
+
 - **ファイル名**: `testing-strategy-specifications.md`
 - **作成ガイドライン**: 🚧 `testing-strategy-guidelines.md` *(要作成)*
 - **目的**: CI/CDパイプラインに組み込むテスト方針の明確化
@@ -71,6 +76,7 @@ WebService-Next-Hono-Base プロジェクトを基盤として実際のWebサー
 ### Phase 2: 本番運用準備（Level 4 フル機能ベース）
 
 #### 5. エラーハンドリング仕様書
+
 - **ファイル名**: `error-handling-specifications.md`
 - **作成ガイドライン**: 🚧 `error-handling-guidelines.md` *(要作成)*
 - **目的**: 統一的なエラー処理による開発効率向上・ユーザー体験改善
@@ -83,6 +89,7 @@ WebService-Next-Hono-Base プロジェクトを基盤として実際のWebサー
   - 障害時の切り戻し・フォールバック機能
 
 #### 6. インフラ・デプロイメント仕様書
+
 - **ファイル名**: `infrastructure-deployment-specifications.md`
 - **作成ガイドライン**: 🚧 `infrastructure-deployment-guidelines.md` *(要作成)*
 - **目的**: 本番環境での安定運用のための基盤設計
@@ -95,6 +102,7 @@ WebService-Next-Hono-Base プロジェクトを基盤として実際のWebサー
   - SSL/TLS証明書管理・CDN設定
 
 #### 7. 監視・ログ仕様書
+
 - **ファイル名**: `monitoring-logging-specifications.md`
 - **作成ガイドライン**: 🚧 `monitoring-logging-guidelines.md` *(要作成)*
 - **目的**: 本番運用での問題検知・分析のための観測性確保
@@ -111,6 +119,7 @@ WebService-Next-Hono-Base プロジェクトを基盤として実際のWebサー
 ### Phase 3: 開発効率・品質向上
 
 #### 8. UIデザインシステム仕様書
+
 - **ファイル名**: `ui-design-system-specifications.md`
 - **作成ガイドライン**: 🚧 `ui-design-system-guidelines.md` *(要作成)*
 - **目的**: 一貫したUI/UX・開発効率向上
@@ -123,6 +132,7 @@ WebService-Next-Hono-Base プロジェクトを基盤として実際のWebサー
   - アクセシビリティ対応（WCAG）
 
 #### 9. パフォーマンス最適化仕様書
+
 - **ファイル名**: `performance-optimization-specifications.md`
 - **作成ガイドライン**: 🚧 `performance-optimization-guidelines.md` *(要作成)*
 - **目的**: スケーラブルなWebサービスのためのパフォーマンス基準
@@ -139,6 +149,7 @@ WebService-Next-Hono-Base プロジェクトを基盤として実際のWebサー
 ### Phase 4: チーム開発・運用改善
 
 #### 10. コードレビューガイドライン
+
 - **ファイル名**: `code-review-guidelines.md`
 - **作成ガイドライン**: 🚧 `code-review-guidelines-template.md` *(要作成)*
 - **目的**: チーム開発での品質担保・知識共有
@@ -150,6 +161,7 @@ WebService-Next-Hono-Base プロジェクトを基盤として実際のWebサー
   - 可読性・保守性の基準
 
 #### 11. デプロイメントチェックリスト
+
 - **ファイル名**: `deployment-checklist.md`
 - **作成ガイドライン**: 🚧 `deployment-checklist-template.md` *(要作成)*
 - **目的**: 本番デプロイ時のミス防止・品質保証
@@ -218,16 +230,19 @@ WebService-Next-Hono-Base プロジェクトを基盤として実際のWebサー
 ## 🚀 使用方法
 
 ### プロジェクト開始時
+
 1. **Phase 1のガイドライン**を参照して、プロジェクト固有の仕様書を作成
 2. 各ガイドラインのチェックリストを埋めて、具体的な要件を定義
 3. 実装チームと仕様書をレビュー・合意
 
 ### 開発進行中
+
 1. 仕様書に基づいて実装・テスト
 2. 課題・変更点があれば仕様書を更新
 3. 定期的にセキュリティ・パフォーマンス要件を見直し
 
 ### 本番運用準備
+
 1. **Phase 2のガイドライン**を参照して運用仕様書を整備
 2. インフラ・監視・エラーハンドリングの準備
 3. デプロイメントチェックリストの実行
@@ -237,6 +252,7 @@ WebService-Next-Hono-Base プロジェクトを基盤として実際のWebサー
 ## 📚 関連ドキュメント
 
 ### 既存の仕様書・ガイドライン
+
 - [webservice-next-hono-base-spec.md](./webservice-next-hono-base-spec.md) - プロジェクト全体仕様
 - [development-workflow.md](./development-workflow.md) - 開発ワークフロー
 - [base-construction-tasks.md](./base-construction-tasks.md) - ベース構築タスク
@@ -244,6 +260,7 @@ WebService-Next-Hono-Base プロジェクトを基盤として実際のWebサー
 - [security-specifications-guidelines.md](./security-specifications-guidelines.md) - セキュリティ仕様書作成ガイドライン
 
 ### 作成予定のガイドライン
+
 - `openapi-specifications-guidelines.md` - OpenAPI仕様書作成ガイドライン
 - `database-design-guidelines.md` - データベース設計ガイドライン
 - `testing-strategy-guidelines.md` - テスト戦略ガイドライン
