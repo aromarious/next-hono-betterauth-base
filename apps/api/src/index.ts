@@ -2,12 +2,14 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 
 const app = new Hono({ strict: false })
-  .use("/*", cors({
-    origin: process.env.NODE_ENV === "development" 
-      ? ["http://localhost:3000"]
-      : [],
-    credentials: true,
-  }))
+  .use(
+    "/*",
+    cors({
+      origin:
+        process.env.NODE_ENV === "development" ? ["http://localhost:3000"] : [],
+      credentials: true,
+    }),
+  )
   // デバッグ用 (本番環境では削除可能)
   .use("*", async (c, next) => {
     console.log("[Hono] Request:", c.req.method, c.req.url);

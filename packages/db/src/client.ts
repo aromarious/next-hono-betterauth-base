@@ -3,7 +3,8 @@ import postgres from "postgres";
 
 import * as schema from "./schema";
 
-const connectionString = process.env.DATABASE_URL || "postgres://postgres:postgres@db:5432/webapp";
+const connectionString =
+  process.env.DATABASE_URL || "postgres://postgres:postgres@db:5432/webapp";
 
 // Disable prefetch as it is not supported for "Transaction" pool mode
 const client = postgres(connectionString, { prepare: false });

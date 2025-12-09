@@ -6,7 +6,7 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
-    "format": "biome format --write .",
+    "format": "biome format --config-path=packages/config/biome.json --write .",
     "prepare": "husky",
     "db:up": "docker compose -f packages/config/docker-compose.yml up -d",
     "db:down": "docker compose -f packages/config/docker-compose.yml down",
