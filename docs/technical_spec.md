@@ -24,7 +24,10 @@ Webサービスの新規開発、および将来的なサービスの基盤と�
 
 * **Package Manager**: pnpm (Workspaces 対応)
 * **Monorepo Tool**: Turborepo (ビルド・タスク管理)
-* **Dev Environment**: Dev Container (Docker Compose)
+* **開発環境**: **ローカル環境での開発を推奨**
+  * **Database**: Docker Compose で PostgreSQL のみを起動
+  * **Application**: ローカルの Node.js で実行 (pnpm dev)
+* **Dev Container**: Docker Compose - **現在は非推奨** (詳細は後述)
   * **推奨 VS Code 拡張機能**:
     * `biomejs.biome`: Biome (Lint/Format)
     * `bradlc.vscode-tailwindcss`: Tailwind CSS IntelliSense
@@ -32,15 +35,37 @@ Webサービスの新規開発、および将来的なサービスの基盤と�
     * `mtxr.sqltools` + `mtxr.sqltools-driver-pg`: DB GUI Client (Postgres)
     * `yoavbls.pretty-ts-errors`: TypeScriptのエラーを読みやすく表示
 
-### 1. System Tools (Dev Container / Dockerfile)
+#### ローカル開発環境のセットアップ
 
-* **OS Level**: `git`, `curl`, `wget`, `procps`, `ca-certificates`
-* **Runtime**: Node.js v20 (Bullseye/Bookworm)
-* **Package Manager**: **pnpm** (via Corepack enabled in Dockerfile)
-* **Secrets**: **Infisical CLI** (apt install)
-* **DB Client**: `postgresql-client` (apt install)
+**推奨構成**: データベースのみDockerで起動し、アプリケーションはローカルで実行します。
 
-### 2. Project Dependencies (package.json / pnpm)
+**設定ファイルの場所**: `packages/config/docker-compose.yml`
+
+```bash
+# 1. データベースの起動
+pnpm db:up
+
+# 2. 依存関係のインストール (初回のみ)
+pnpm install
+
+# 3. アプリケーションの起動
+pnpm dev
+```
+
+**環境変数管理**: このプロジェクトは **Infisical** を使用して環境変数を管理します。
+
+**その他のDBコマンド**:
+
+* `pnpm db:down` - データベースの停止
+* `pnpm db:restart` - データベースの再起動
+* `pnpm db:logs` - データベースのログを表示
+
+詳細なセットアップ手順は [`README.md`](../README.md) を参照してください。
+
+> [!NOTE]
+> Dev Container に関する情報は [`technical_spec_devcontainer.md`](technical_spec_devcontainer.md) を参照してください。
+
+### 依存関係 (package.json / pnpm)
 
 * **Core**: `hono`, `next`, `react`, `react-dom`
 * **DB**: `drizzle-orm`, `postgres`

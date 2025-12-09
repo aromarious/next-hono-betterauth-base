@@ -1,0 +1,13 @@
+{
+  "name": "@packages/config",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./biome": "./biome.json",
+    "./tsconfig": "./tsconfig.json"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0",
+    "@biomejs/biome": "^1.0.0"
+  }
+}
