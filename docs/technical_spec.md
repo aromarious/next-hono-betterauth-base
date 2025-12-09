@@ -97,7 +97,7 @@ pnpm dev
 
 ```text
 .
-├── .devcontainer/        # Dev Container 設定
+├── .devcontainer/        # （Dev Container 設定、使用しない）
 ├── .husky/               # Git Hooks 設定
 ├── apps/
 │   ├── web/              # Next.js (Port 3000) - Main App
@@ -130,3 +130,31 @@ pnpm dev
 * **Access**:
   * **Browser/iOS**: 全て `http://localhost:3000/api/*` に対してアクセスします。
   * **Type Safety**: これまで通り、APIの型定義 (`AppType`) を利用して型安全性を確保します。
+
+## 5. 環境変数・シークレット管理
+
+プロジェクトの環境変数（シークレット含む）は **Infisical** を使用して一元管理します。
+
+* **役割**: Single Source of Truth として、すべての環境のシークレットを Infisical 上で管理します。
+* **コードベース**: `.env` ファイルはリポジトリにコミットしません（`.gitignore` 対象）。
+
+### 運用戦略 (Hybrid Strategy)
+
+本番環境の可用性を確保するため、Infisical へのランタイム依存は行わず、各環境に適した注入方法を採用します。
+
+| 環境 | 注入方法 | 詳細 |
+| :--- | :--- | :--- |
+| **Development** (Local) | **Infisical CLI** | `infisical run -- <command>` を使用して、開発者のローカルプロセスに直接シークレットを注入します。開発者は手元に機密ファイルを保持する必要がありません。 |
+| **CI / Testing** | **Infisical CLI** | GitHub Actions などの CI/CD パイプライン内で CLI を使用し、テスト実行に必要なシークレットを動的に取得します。 |
+| **Production** | **Integration (Sync)** | **Infisical Integrations** 機能を使用し、Infisical からデプロイ先プラットフォーム（Vercel, AWS Parameter Store, Render 等）の環境変数ストアへ自動同期します。アプリケーションは標準の `process.env` を通じて値を参照するため、Infisical API の稼働状況に影響されません。 |
+
+### 必要なツール
+
+* **Infisical CLI**: ローカル開発および CI で必要です。
+
+> [!NOTE]
+> **実装状況 (2025/12/09現在)**
+>
+> * **Development**: 導入完了 (v0.0.0で対応)
+> * **CI / Testing**: 未導入 (CI環境構築時に設定予定)
+> * **Production**: 未導入 (デプロイ環境構築時に設定予定)

@@ -34,9 +34,27 @@ cd webservice-next-hono-base
 pnpm install
 ```
 
-### 3. 環境変数の設定
+### 3. 環境変数の設定 (Infisical)
 
 このプロジェクトは環境変数の管理に **Infisical** を使用します。
+Infisical CLI がインストールされていない場合は、以下の手順でインストールしてください。
+
+#### Infisical CLI のインストール (macOS)
+
+```bash
+brew install infisical/get-infisical/infisical
+```
+
+(その他のOSは [公式ドキュメント](https://infisical.com/docs/cli/overview) を参照)
+
+#### プロジェクトへのログイン
+
+```bash
+infisical login
+infisical init
+```
+
+※ プロジェクトIDの設定などが必要な場合があります。
 
 Infisical のセットアップ方法については [Infisical CLI ドキュメント](https://infisical.com/docs/cli/overview) を参照してください。
 
