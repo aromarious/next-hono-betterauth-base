@@ -31,10 +31,24 @@ Webサービスの新規開発、および将来的なサービスの基盤と�
     * `ms-azuretools.vscode-docker`: Docker
     * `mtxr.sqltools` + `mtxr.sqltools-driver-pg`: DB GUI Client (Postgres)
     * `yoavbls.pretty-ts-errors`: TypeScriptのエラーを読みやすく表示
-* **Secrets Management**: Infisical
-  * 環境変数のクラウド管理。Dev Container 内で CLI を使用して注入。
 
-### コード品質・CI
+### 1. System Tools (Dev Container / Dockerfile)
+
+* **OS Level**: `git`, `curl`, `wget`, `procps`, `ca-certificates`
+* **Runtime**: Node.js v20 (Bullseye/Bookworm)
+* **Package Manager**: **pnpm** (via Corepack enabled in Dockerfile)
+* **Secrets**: **Infisical CLI** (apt install)
+* **DB Client**: `postgresql-client` (apt install)
+
+### 2. Project Dependencies (package.json / pnpm)
+
+* **Core**: `hono`, `next`, `react`, `react-dom`
+* **DB**: `drizzle-orm`, `postgres`
+* **Dev Tools**:
+  * **Biome**: `@biomejs/biome` (Dev) - *Locally installed, versioned in package.json*
+  * **Husky**: `husky` (Dev) - *Locally installed*
+  * **Turborepo**: `turbo` (Dev or Global)
+  * **Types**: `@types/node`, `@types/react`, etc.
 
 * **Linter / Formatter**: Biome
   * 高速な Lint/Format ツールとして Prettier/ESLint に代わり採用。
@@ -69,12 +83,17 @@ Webサービスの新規開発、および将来的なサービスの基盤と�
 │       └── package.json
 ├── packages/
 │   ├── config/           # 共通設定 (Biome, TSConfig)
+│   │   └── biome/        # Biome Config (biome.json here)
 │   ├── ui/               # 共通 UI (shadcn/ui)
 │   └── db/               # 共通 DB (Drizzle, Connection)
 ├── package.json          # Root Package (Workspaces, Scripts)
-├── biome.json            # Biome 設定
 └── turbo.json            # Turborepo 設定
 ```
+
+### Clean Root Rule (ルートディレクトリ美化ルール)
+
+* **原則**: ルートディレクトリには、ツールが強制的に要求するファイル (`package.json`, `turbo.json`, `.gitignore` 等) 以外は配置しない。
+* **設定ファイル**: 基本的に `packages/config` などの適切なサブディレクトリに配置し、ルートからは参照する形をとるか、各パッケージで継承して使用する。
 
 ## 4. API 戦略と実行パス（統合構成）
 
