@@ -11,7 +11,10 @@
     "db:up": "docker compose -f packages/config/docker-compose.yml up -d",
     "db:down": "docker compose -f packages/config/docker-compose.yml down",
     "db:restart": "docker compose -f packages/config/docker-compose.yml restart",
-    "db:logs": "docker compose -f packages/config/docker-compose.yml logs -f"
+    "db:logs": "docker compose -f packages/config/docker-compose.yml logs -f",
+    "test:int": "infisical run -- turbo run test",
+    "test:e2e": "infisical run -- turbo run test:e2e",
+    "test:ci": "turbo run test test:e2e"
   },
   "packageManager": "pnpm@10.11.0",
   "devDependencies": {

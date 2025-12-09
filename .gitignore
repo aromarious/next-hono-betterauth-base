@@ -565,3 +565,10 @@ vite.config.ts.timestamp-*
 .vite/
 
 .infisical.json
+.turbo/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/

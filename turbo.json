@@ -16,6 +16,14 @@
     },
     "format": {
       "dependsOn": ["^format"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"],
+      "inputs": ["src/**", "test/**"]
+    },
+    "test:e2e": {
+      "cache": false
     }
   }
 }
