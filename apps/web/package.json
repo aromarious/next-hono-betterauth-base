@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
     "lint": "next lint",
+    "test": "pnpm test:unit && pnpm test:int",
+    "test:unit": "vitest -c vitest.config.ts --run",
+    "test:int": "infisical run --env=staging -- vitest -c vitest.integration.config.ts --run",
     "test:e2e": "playwright test"
   },
   "dependencies": {
@@ -32,6 +34,7 @@
     "drizzle-kit": "^0.20.0",
     "postcss": "catalog:",
     "tailwindcss": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

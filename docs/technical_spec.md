@@ -93,7 +93,45 @@ pnpm dev
 * **CSS Framework**: Tailwind CSS
 * **Components**: shadcn/ui
 
-## 3. アーキテクチャとディレクトリ構成
+* **Testing**:
+  * **Unit / Integration**: Vitest
+  * **E2E**: Playwright
+
+## 3. テスト戦略
+
+品質と開発速度のバランスを考慮し、以下のテストピラミッドを採用します。
+
+### テストの種類とツール
+
+| 種別 | ツール | 役割・ファイル名 | 実行コマンド |
+| :--- | :--- | :--- | :--- |
+| **Unit Test** | **Vitest** | ドメインロジック等の単体テスト。<br>`*.test.ts` (統合テスト以外) | `pnpm test:unit` |
+| **Integration Test** | **Vitest** | APIエンドポイント等の統合テスト（DB接続あり）。<br>`*.integration.test.ts` | `pnpm test:integration` |
+| **End-to-End** | **Playwright** | ブラウザを用いたE2Eテスト。<br>`e2e/**/*` | `pnpm test:e2e` |
+
+> **Note**: `pnpm test` コマンドは Unit と Integration の両方を実行します。
+
+### テストの方針
+
+1. **Unit Test (単体テスト)**:
+    * **対象**: Domain層、Usecase層の複雑なロジック、Utility関数。
+    * **DB接続**: **行わない (Mockを使用)**。
+2. **Integration Test (統合テスト)**:
+    * **対象**: API層 (`apps/web/server` 配下のエンドポイント)。
+    * **DB接続**: **行う (Real Databaseを使用)**。
+        * ファイル名には `.integration.test.ts` を付与して区別する。
+3. **End-to-End (E2E)**:
+    * 対象: Frontendを含む全システムのユーザーフロー。
+    * DB接続: 行う。
+
+### テスト実行環境
+
+* **Local**: `docker compose up` でDB(Port:5432)およびTest DB(Port:5433)が起動している状態でテストを実行する。
+  * 統合テストは `infisical` (Environment: **staging**) 経由で `DATABASE_URL` (Port 5433) を取得して接続します。
+  * **Test DB Connection**: `postgresql://postgres:postgres@localhost:5433/webapp_test`
+* **CI**: GitHub Actions等のService Container機能でPostgreSQLを起動し、**単体テストと統合テストの両方を実行します** (`pnpm test`)。統合テストはService ContainerのDBを使用して動作検証を行います。
+
+## 4. アーキテクチャとディレクトリ構成
 
 ```text
 .
@@ -137,7 +175,7 @@ DBロジック（スキーマやクライアント）も `infrastructure/db` に
 * **原則**: ルートディレクトリには、ツールが強制的に要求するファイル (`package.json`, `turbo.json`, `.gitignore` 等) 以外は配置しない。
 * **設定ファイル**: 基本的に `packages/config` などの適切なサブディレクトリに配置し、ルートからは参照する形をとるか、各パッケージで継承して使用する。
 
-## 4. API 戦略と実行パス（統合構成）
+## 5. API 戦略と実行パス（統合構成）
 
 * **Architecture**:
   * **Web Process Only**: 開発時および本番環境では、`apps/web` (Next.js) のプロセスのみを起動します (**Port 3000**)。
@@ -148,12 +186,12 @@ DBロジック（スキーマやクライアント）も `infrastructure/db` に
   * **Browser/iOS**: 全て `http://localhost:3000/api/*` に対してアクセスします。
   * **Type Safety**: Backend/Frontend が同一パッケージ内に同居するため、型定義の共有 (`AppType`) がより容易になります。
 
-## 5. 環境変数・シークレット管理
+## 6. 環境変数・シークレット管理
 
 プロジェクトの環境変数（シークレット含む）は **Infisical** を使用して一元管理します。
 
 * **役割**: Single Source of Truth として、すべての環境のシークレットを Infisical 上で管理します。
-* **コードベース**: `.env` ファイルはリポジトリにコミットしません（`.gitignore` 対象）。
+* **コードベース**: `.env` ファイルは使いません。リポジトリにコミットしません（`.gitignore` 対象）。
 
 ### 運用戦略 (Hybrid Strategy)
 
