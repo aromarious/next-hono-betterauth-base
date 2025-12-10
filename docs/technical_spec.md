@@ -173,6 +173,8 @@ DBロジック（スキーマやクライアント）も `infrastructure/db` に
 
 ### Clean Root Rule (ルートディレクトリ美化ルール)
 
+詳細な API 実装標準については [Hono API 実装標準](server_standards.md) を参照してください。
+
 * **原則**: ルートディレクトリには、ツールが強制的に要求するファイル (`package.json`, `turbo.json`, `.gitignore` 等) 以外は配置しない。
 * **設定ファイル**: 基本的に `packages/config` などの適切なサブディレクトリに配置し、ルートからは参照する形をとるか、各パッケージで継承して使用する。
 
