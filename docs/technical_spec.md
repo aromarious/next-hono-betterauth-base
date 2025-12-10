@@ -102,17 +102,35 @@ pnpm dev
 ├── apps/
 │   └── web/              # Next.js (Port 3000) - Main App & API
 │       ├── app/          # Next.js App Router
-│       ├── server/       # Hono App (Backend Logic) - MOVED from apps/api
-│       │   └── routes/   # API Routes
+│       ├── server/       # Hono App (Backend Logic) - Clean Architecture
+│       │   ├── domain/       # Entities / Rules
+│       │   ├── usecase/      # Application Business Rules
+│       │   ├── adapter/      # Interface Adapters (Controllers)
+│       │   ├── infrastructure/ # Frameworks & Drivers
+│       │   │   └── db/       # Database Connection & Schema (Moved from packages/db)
+│       │   └── index.ts      # DI & Routing
 │       └── package.json
 ├── packages/
 │   ├── config/           # 共通設定 (Biome, TSConfig)
-│   │   └── biome/        # Biome Config (biome.json here)
-│   ├── ui/               # 共通 UI (shadcn/ui)
-│   └── db/               # 共通 DB (Drizzle, Connection)
+│   └── ui/               # 共通 UI (shadcn/ui)
+│   <!-- packages/db removed and integrated into apps/web/server/infrastructure -->
 ├── package.json          # Root Package (Workspaces, Scripts)
 └── turbo.json            # Turborepo 設定
+
 ```
+
+### バックエンドアーキテクチャ (Clean Architecture)
+
+`apps/web/server` 配下は、**Clean Architecture** に基づいて責務を以下のディレクトリに分割します。
+初期開発のオーバーヘッドを避けるため、パッケージ分割（`packages/*`）ではなく、ディレクトリによるモジュール分割を採用します。
+
+1. **domain**: 純粋なビジネスロジックとエンティティ。外部依存を持たない。
+2. **usecase**: アプリケーション固有のビジネスロジック。
+3. **adapter**: インターフェースアダプター（Hono Controllersなど）。
+4. **infrastructure**: フレームワークやDBの詳細（Drizzle, API Clientsなど）。
+
+この構成により、テスト容易性と将来的な拡張性を担保します。
+DBロジック（スキーマやクライアント）も `infrastructure/db` に配置します。
 
 ### Clean Root Rule (ルートディレクトリ美化ルール)
 
