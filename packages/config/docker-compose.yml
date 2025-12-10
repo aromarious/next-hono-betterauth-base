@@ -3,7 +3,8 @@ name: webservice-next-hono-base
 services:
   db:
     container_name: postgres
-    image: postgres:16-bullseye
+    build:
+      context: ./database
     restart: unless-stopped
     ports:
       - "5432:5432"
@@ -21,7 +22,8 @@ services:
 
   test-db:
     container_name: postgres-test
-    image: postgres:16-bullseye
+    build:
+      context: ./database
     restart: unless-stopped
     ports:
       - "5433:5432"

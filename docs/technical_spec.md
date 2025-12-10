@@ -26,6 +26,7 @@ Webサービスの新規開発、および将来的なサービスの基盤と�
 * **Monorepo Tool**: Turborepo (ビルド・タスク管理)
 * **開発環境**: **ローカル環境での開発を推奨**
   * **Database**: Docker Compose で PostgreSQL のみを起動
+    * **Locale**: `ja_JP.utf8` (日本語ロケール) - ソート順やエラーメッセージの日本語化のため、カスタムDockerfile (`packages/config/database/Dockerfile`) を使用してビルドします。
   * **Application**: ローカルの Node.js で実行 (pnpm dev)
 * **Dev Container**: Docker Compose - **現在は非推奨** (詳細は後述)
   * **推奨 VS Code 拡張機能**:
@@ -39,7 +40,7 @@ Webサービスの新規開発、および将来的なサービスの基盤と�
 
 **推奨構成**: データベースのみDockerで起動し、アプリケーションはローカルで実行します。
 
-**設定ファイルの場所**: `packages/config/docker-compose.yml`
+**設定ファイルの場所**: `packages/config/docker-compose.yml`, `packages/config/database/Dockerfile`
 
 ```bash
 # 1. データベースの起動
@@ -174,6 +175,13 @@ DBロジック（スキーマやクライアント）も `infrastructure/db` に
 
 * **原則**: ルートディレクトリには、ツールが強制的に要求するファイル (`package.json`, `turbo.json`, `.gitignore` 等) 以外は配置しない。
 * **設定ファイル**: 基本的に `packages/config` などの適切なサブディレクトリに配置し、ルートからは参照する形をとるか、各パッケージで継承して使用する。
+
+> [!NOTE]
+> **暫定対処 (Known Issue - 2025/12/10): `biome.json` のルート配置**
+>
+> 現在、VS Code の Biome 拡張機能が `packages/config/biome.json` を正しく自動検出・継承できない問題（フォーマット差異の発生）を確認しています。
+> このため、**暫定的にルートディレクトリに `biome.json` を配置**しています。これも `packages/config/biome.json` を `extends` するだけの薄いファイルです。
+> 将来的にツールの挙動が改善され次第、このファイルは削除し、`packages/config` への集約に戻す予定です。
 
 ## 5. API 戦略と実行パス（統合構成）
 

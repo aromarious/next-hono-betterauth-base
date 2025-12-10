@@ -6,7 +6,7 @@
     "build": "turbo build",
     "dev": "infisical run -- turbo dev",
     "lint": "turbo lint",
-    "format": "biome format --config-path=packages/config/biome.json --write .",
+    "format": "biome format --write .",
     "prepare": "husky",
     "db:up": "docker compose -f packages/config/docker-compose.yml up -d",
     "db:down": "docker compose -f packages/config/docker-compose.yml down",
@@ -20,7 +20,7 @@
   },
   "lint-staged": {
     "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
-      "biome check --write --no-errors-on-unmatched --config-path=packages/config/biome.json"
+      "biome check --write --no-errors-on-unmatched"
     ]
   },
   "packageManager": "pnpm@10.11.0",

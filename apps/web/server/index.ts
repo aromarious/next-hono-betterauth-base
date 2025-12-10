@@ -1,6 +1,7 @@
 import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { env } from "@/env"
+import posts from "./routes/posts"
 
 const app = new Hono({ strict: false })
   .basePath("/api")
@@ -22,6 +23,7 @@ const app = new Hono({ strict: false })
   .get("/hello", (c) => {
     return c.json({ message: "Hello from Hono!" })
   })
+  .route("/posts", posts)
 
 export type AppType = typeof app
 export default app
