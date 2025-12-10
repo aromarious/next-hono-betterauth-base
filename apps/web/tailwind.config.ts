@@ -1,5 +1,5 @@
-import sharedConfig from "@packages/ui/tailwind.config";
-import type { Config } from "tailwindcss";
+import sharedConfig from "@packages/ui/tailwind.config"
+import type { Config } from "tailwindcss"
 
 const config: Config = {
   ...sharedConfig,
@@ -9,5 +9,5 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "../../packages/ui/src/**/*.{ts,tsx}",
   ],
-};
-export default config;
+}
+export default config

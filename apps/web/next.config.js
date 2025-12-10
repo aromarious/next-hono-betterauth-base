@@ -1,8 +1,8 @@
-await import("./env.ts");
+await import("./env.ts")
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ["@packages/ui"],
-};
+}
 
-export default nextConfig;
+export default nextConfig

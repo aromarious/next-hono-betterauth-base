@@ -1,11 +1,11 @@
-import { env } from "@/env";
-import { client } from "@/lib/client";
+import { env } from "@/env"
+import { client } from "@/lib/client"
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"
 
 export default async function Home() {
-  const res = await client.api.hello.$get();
-  const data = await res.json();
+  const res = await client.api.hello.$get()
+  const data = await res.json()
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
@@ -16,5 +16,5 @@ export default async function Home() {
         <p className="text-xl mt-4">env: {env.DATABASE_URL}</p>
       </div>
     </main>
-  );
+  )
 }

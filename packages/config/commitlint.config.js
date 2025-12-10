@@ -4,4 +4,4 @@ export default {
     "subject-case": [0, "never"],
     "subject-full-stop": [0, "never"],
   },
-};
+}

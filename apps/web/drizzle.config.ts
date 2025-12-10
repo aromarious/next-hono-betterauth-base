@@ -1,5 +1,5 @@
-import type { Config } from "drizzle-kit";
-import { env } from "@/env";
+import type { Config } from "drizzle-kit"
+import { env } from "@/env"
 
 export default {
   schema: "./server/infrastructure/db/schema.ts",
@@ -8,4 +8,4 @@ export default {
   dbCredentials: {
     connectionString: env.DATABASE_URL,
   },
-} satisfies Config;
+} satisfies Config
