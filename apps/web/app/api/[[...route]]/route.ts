@@ -1,4 +1,4 @@
-import app from "api";
+import app from "../../../server";
 
 // Set runtime to nodejs or edge as needed (Hono supports both)
 export const runtime = "nodejs";

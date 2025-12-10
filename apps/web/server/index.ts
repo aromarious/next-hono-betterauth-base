@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 
 const app = new Hono({ strict: false })
+  .basePath("/api")
   .use(
     "/*",
     cors({
@@ -10,19 +11,16 @@ const app = new Hono({ strict: false })
       credentials: true,
     }),
   )
-  // デバッグ用 (本番環境では削除可能)
   .use("*", async (c, next) => {
     console.log("[Hono] Request:", c.req.method, c.req.url);
     console.log("[Hono] Path:", c.req.path);
     await next();
   })
-  // Next.jsの /api/[[...route]] から呼ばれるため、/api でルートを定義
-  .get("/api", (c) => {
-    return c.json({ message: "Hello Hono!" });
+  .get("/health", (c) => {
+    return c.json({ status: "ok" });
   })
-  // その他のAPIルートもここに追加可能
-  .get("/api/test", (c) => {
-    return c.json({ message: "Test endpoint" });
+  .get("/hello", (c) => {
+    return c.json({ message: "Hello from Hono!" });
   });
 
 export type AppType = typeof app;

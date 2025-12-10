@@ -100,11 +100,10 @@ pnpm dev
 ├── .devcontainer/        # （Dev Container 設定、使用しない）
 ├── .husky/               # Git Hooks 設定
 ├── apps/
-│   ├── web/              # Next.js (Port 3000) - Main App
-│   │   ├── app/          # Next.js App Router
-│   │   └── package.json
-│   └── api/              # Hono (App Library) - Mounted to Web
-│       ├── routes/       # API Routes
+│   └── web/              # Next.js (Port 3000) - Main App & API
+│       ├── app/          # Next.js App Router
+│       ├── server/       # Hono App (Backend Logic) - MOVED from apps/api
+│       │   └── routes/   # API Routes
 │       └── package.json
 ├── packages/
 │   ├── config/           # 共通設定 (Biome, TSConfig)
@@ -124,12 +123,12 @@ pnpm dev
 
 * **Architecture**:
   * **Web Process Only**: 開発時および本番環境では、`apps/web` (Next.js) のプロセスのみを起動します (**Port 3000**)。
-  * **API Mounting**: `apps/api` で定義された Hono アプリケーションを、`apps/web` の API Routes (`app/api/[...route]/route.ts`) にインポートしてマウントします。
-  * これにより、ディレクトリ構成上は分離しつつ、実行時は**単一のプロセス・単一のポート**で動作します。
+  * **API Mounting**: `apps/web/server` で定義された Hono アプリケーションを、同プロジェクト内の API Routes (`app/api/[...route]/route.ts`) にインポートしてマウントします。
+  * これにより、完全に単一のアプリケーションとして動作し、デプロイや管理が簡素化されます。
 
 * **Access**:
   * **Browser/iOS**: 全て `http://localhost:3000/api/*` に対してアクセスします。
-  * **Type Safety**: これまで通り、APIの型定義 (`AppType`) を利用して型安全性を確保します。
+  * **Type Safety**: Backend/Frontend が同一パッケージ内に同居するため、型定義の共有 (`AppType`) がより容易になります。
 
 ## 5. 環境変数・シークレット管理
 

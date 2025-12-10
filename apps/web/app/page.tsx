@@ -3,7 +3,7 @@ import { client } from "@/lib/client";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const res = await client.api.$get();
+  const res = await client.api.hello.$get();
   const data = await res.json();
 
   return (

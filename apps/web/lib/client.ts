@@ -1,5 +1,5 @@
-import type { AppType } from "api";
 import { hc } from "hono/client";
+import type { AppType } from "@/server";
 
 // Assuming API is mounted at /api within the same domain (Next.js config)
 const baseUrl =
@@ -7,4 +7,4 @@ const baseUrl =
     ? window.location.origin
     : "http://localhost:3000";
 
-export const client = hc<AppType>(`${baseUrl}/api`);
+export const client = hc<AppType>(baseUrl);
