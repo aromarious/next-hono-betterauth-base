@@ -1,3 +1,4 @@
+import { env } from "@/env";
 import { client } from "@/lib/client";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,8 @@ export default async function Home() {
       <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
         <h1 className="text-4xl font-bold">Webservice Next Hono Base</h1>
         <p className="text-xl mt-4">API Response: {data.message}</p>
+        <p className="text-xl mt-4">env: {env.NODE_ENV}</p>
+        <p className="text-xl mt-4">env: {env.DATABASE_URL}</p>
       </div>
     </main>
   );

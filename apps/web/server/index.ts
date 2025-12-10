@@ -1,13 +1,13 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { env } from "@/env";
 
 const app = new Hono({ strict: false })
   .basePath("/api")
   .use(
     "/*",
     cors({
-      origin:
-        process.env.NODE_ENV === "development" ? ["http://localhost:3000"] : [],
+      origin: env.NODE_ENV === "development" ? ["http://localhost:3000"] : [],
       credentials: true,
     }),
   )

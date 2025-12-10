@@ -169,6 +169,24 @@ DBロジック（スキーマやクライアント）も `infrastructure/db` に
 
 * **Infisical CLI**: ローカル開発および CI で必要です。
 
+### 安全な環境変数管理 (Environment Safety)
+
+Fail-fastな開発とキャッシュ事故防止のため、以下のルールを採用します。
+
+1. **バリデーション**: [T3 Env](https://env.t3.gg/) (`@t3-oss/env-nextjs`) を採用し、環境変数の型バリデーションを行います。
+    * サーバー起動時・ビルド時に環境変数の不足を検知し、エラーを返します。
+    * `process.env` を直接参照せず、ライブラリ経由でアクセスすることで型安全性を確保します。
+2. **キャッシュ設定 (Turbo)**:
+    * 環境変数の値が変わった際にキャッシュが無効化されるよう、`turbo.json` の `globalEnv`/`env` を適切に設定します。
+
+### 環境変数一覧
+
+| 変数名 | 必須 | 概要 | 使用箇所 |
+| :--- | :--- | :--- | :--- |
+| `DATABASE_URL` | **Yes** | PostgreSQL 接続文字列 | `apps/web/server/infrastructure/db/client.ts`<br>`apps/web/drizzle.config.ts` |
+| `NODE_ENV` | **Yes** | Node.js ランタイム環境 (`development`, `production`, `test`) | `apps/web/server`<br>`project-wide` |
+| `CI` | No | CI環境フラグ (CI環境のみ) | `apps/web/playwright.config.ts` |
+
 > [!NOTE]
 > **実装状況 (2025/12/09現在)**
 >
