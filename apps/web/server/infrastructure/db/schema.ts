@@ -1,7 +1,7 @@
 import { pgTable } from "drizzle-orm/pg-core"
 import { ulid } from "ulid"
 
-export const users = pgTable("users", (t) => ({
+export const UserTable = pgTable("users", (t) => ({
   id: t
     .text("id")
     .primaryKey()
@@ -11,7 +11,7 @@ export const users = pgTable("users", (t) => ({
   createdAt: t.timestamp("created_at").defaultNow().notNull(),
 }))
 
-export const posts = pgTable("posts", (t) => ({
+export const PostTable = pgTable("posts", (t) => ({
   id: t
     .text("id")
     .primaryKey()
@@ -22,8 +22,8 @@ export const posts = pgTable("posts", (t) => ({
   updatedAt: t.timestamp("updated_at").defaultNow().notNull(),
 }))
 
-export type User = typeof users.$inferSelect
-export type NewUser = typeof users.$inferInsert
+export type User = typeof UserTable.$inferSelect
+export type NewUser = typeof UserTable.$inferInsert
 
-export type Post = typeof posts.$inferSelect
-export type NewPost = typeof posts.$inferInsert
+export type Post = typeof PostTable.$inferSelect
+export type NewPost = typeof PostTable.$inferInsert

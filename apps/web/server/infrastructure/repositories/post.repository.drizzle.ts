@@ -2,34 +2,23 @@ import { eq } from "drizzle-orm"
 import type { PostRepository } from "@/server/domain/ports/post.repository"
 import { Post } from "@/server/domain/post.entity"
 import { db } from "@/server/infrastructure/db/client"
-import { posts } from "@/server/infrastructure/db/schema"
+import { PostTable } from "@/server/infrastructure/db/schema"
 
 export class PostRepositoryImpl implements PostRepository {
   async findAll(): Promise<Post[]> {
-    const results = await db.select().from(posts)
-    return results.map((p) =>
-      Post.reconstruct({
-        id: p.id,
-        title: p.title ?? "",
-        content: p.content ?? "",
-        createdAt: p.createdAt,
-        updatedAt: p.updatedAt,
-      }),
-    )
+    const results = await db.select().from(PostTable)
+    return results.map((p) => Post.reconstruct({ ...p }))
   }
 
   async findById(id: string): Promise<Post | null> {
-    const results = await db.select().from(posts).where(eq(posts.id, id))
+    const results = await db
+      .select()
+      .from(PostTable)
+      .where(eq(PostTable.id, id))
     const p = results[0]
     if (!p) return null
 
-    return Post.reconstruct({
-      id: p.id,
-      title: p.title ?? "",
-      content: p.content ?? "",
-      createdAt: p.createdAt,
-      updatedAt: p.updatedAt,
-    })
+    return Post.reconstruct({ ...p })
   }
 
   async save(post: Post): Promise<Post> {
@@ -39,7 +28,7 @@ export class PostRepositoryImpl implements PostRepository {
       // Create (Insert)
       // Drizzle handles missing default columns (id, createdAt) if they are undefined
       const result = await db
-        .insert(posts)
+        .insert(PostTable)
         .values({
           title: data.title,
           content: data.content,
@@ -48,13 +37,7 @@ export class PostRepositoryImpl implements PostRepository {
       const newPostData = result[0]
       if (!newPostData) throw new Error("Failed to create post")
 
-      return Post.reconstruct({
-        id: newPostData.id,
-        title: newPostData.title ?? "",
-        content: newPostData.content ?? "",
-        createdAt: newPostData.createdAt,
-        updatedAt: newPostData.updatedAt,
-      })
+      return Post.reconstruct({ ...newPostData })
     }
 
     // Update (Upsert)
@@ -74,8 +57,8 @@ export class PostRepositoryImpl implements PostRepository {
       throw new Error("Cannot save persisted entity without createdAt")
     }
 
-    await db
-      .insert(posts)
+    const result = await db
+      .insert(PostTable)
       .values({
         id: data.id!,
         title: data.title ?? "",
@@ -84,7 +67,7 @@ export class PostRepositoryImpl implements PostRepository {
         updatedAt: data.updatedAt ?? new Date(),
       })
       .onConflictDoUpdate({
-        target: posts.id,
+        target: PostTable.id,
         set: {
           title: data.title,
           content: data.content,
@@ -93,20 +76,20 @@ export class PostRepositoryImpl implements PostRepository {
       })
       .returning()
 
-    return post
+    const updatedPostData = result[0]
+    if (!updatedPostData) throw new Error("Failed to update post")
+
+    return Post.reconstruct({ ...updatedPostData })
   }
 
   async delete(id: string): Promise<Post | null> {
-    const deleted = await db.delete(posts).where(eq(posts.id, id)).returning()
+    const deleted = await db
+      .delete(PostTable)
+      .where(eq(PostTable.id, id))
+      .returning()
     const p = deleted[0]
     if (!p) return null
 
-    return Post.reconstruct({
-      id: p.id,
-      title: p.title ?? "",
-      content: p.content ?? "",
-      createdAt: p.createdAt,
-      updatedAt: p.updatedAt,
-    })
+    return Post.reconstruct({ ...p })
   }
 }
