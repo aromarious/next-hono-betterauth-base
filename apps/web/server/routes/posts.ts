@@ -21,6 +21,19 @@ const handlers = {
     return c.json(allPosts.map((p) => p.toJSON()))
   }),
 
+  getPost: factory.createHandlers(async (c) => {
+    const id = c.req.param("id")
+    if (!id) return c.json({ error: "Invalid ID" }, 400)
+
+    const post = await postRepository.findById(id)
+
+    if (!post) {
+      return c.json({ error: "Post not found" }, 404)
+    }
+
+    return c.json(post.toJSON())
+  }),
+
   createPost: factory.createHandlers(
     zValidator("json", CreatePostSchema),
     async (c) => {
@@ -64,6 +77,7 @@ const handlers = {
 const app = new Hono()
 
 app.get("/", ...handlers.getPosts)
+app.get("/:id", ...handlers.getPost)
 app.post("/", ...handlers.createPost)
 app.put("/:id", ...handlers.updatePost)
 app.delete("/:id", ...handlers.deletePost)

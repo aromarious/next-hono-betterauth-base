@@ -34,6 +34,17 @@ else
   exit 1
 fi
 
+# 2.5 Get Single Post
+echo "\n[2.5] Getting Single Post..."
+GET_SINGLE_RES=$(curl -s "$BASE_URL/$POST_ID")
+if [[ $GET_SINGLE_RES == *"$POST_ID"* ]]; then
+  echo "✅ Single post found"
+else
+  echo "❌ Single post fetch failed"
+  echo "Response: $GET_SINGLE_RES"
+  exit 1
+fi
+
 # 3. Update Post
 echo "\n[3] Updating Post..."
 UPDATE_RES=$(curl -s -X PUT "$BASE_URL/$POST_ID" \
@@ -66,8 +77,17 @@ GET_RES_FINAL=$(curl -s "$BASE_URL")
 if [[ $GET_RES_FINAL != *"$POST_ID"* ]]; then
   echo "✅ Post correctly removed"
 else
-  echo "❌ Post still exists"
+  echo "❌ Post still exists in list"
   exit 1
+fi
+
+GET_SINGLE_RES_FINAL=$(curl -s "$BASE_URL/$POST_ID")
+if [[ $GET_SINGLE_RES_FINAL == *"Post not found"* ]]; then
+    echo "✅ Post correctly returned 404/Error"
+else
+    echo "❌ Post still accessible via ID"
+    echo "Response: $GET_SINGLE_RES_FINAL"
+    exit 1
 fi
 
 echo "\n=== Verification Complete: SUCCESS ==="

@@ -15,6 +15,10 @@ echo "2. Listing all posts..."
 curl -s $BASE_URL | jq .
 echo "--------------------------------"
 
+echo "2.1. Getting single post..."
+curl -s "$BASE_URL/$ID" | jq .
+echo "--------------------------------"
+
 echo "3. Updating the post..."
 curl -s -X PUT "$BASE_URL/$ID" \
   -H "Content-Type: application/json" \
@@ -25,7 +29,7 @@ echo "4. Deleting the post..."
 curl -s -X DELETE "$BASE_URL/$ID" | jq .
 echo "--------------------------------"
 
-echo "5. Verifying deletion (should fail or return empty)..."
-curl -s -X GET "$BASE_URL/$ID" # Assuming GET /:id is not implemented yet, listing all instead
+echo "5. Verifying deletion (should be 404 or error)..."
+curl -s -X GET "$BASE_URL/$ID" | jq .
 curl -s $BASE_URL | jq .
 echo "--------------------------------"
