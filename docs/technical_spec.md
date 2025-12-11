@@ -118,9 +118,13 @@ pnpm dev
     * **対象**: Domain層、Usecase層の複雑なロジック、Utility関数。
     * **DB接続**: **行わない (Mockを使用)**。
 2. **Integration Test (統合テスト)**:
-    * **対象**: API層 (`apps/web/server` 配下のエンドポイント)。
+    * **対象**: API層 (`apps/web/server` 配下のエンドポイント) および Repository層。
     * **DB接続**: **行う (Real Databaseを使用)**。
         * ファイル名には `.integration.test.ts` を付与して区別する。
+    * **APIテスト**:
+        * Honoの `app.request()` を使用して、HTTPサーバを起動せずにリクエストをシミュレーションします。
+        * 統合APIテストの配置場所: `apps/web/test/integration/`
+        * 例: `apps/web/test/integration/system.integration.test.ts` で `/api/health` を検証。
 3. **End-to-End (E2E)**:
     * 対象: Frontendを含む全システムのユーザーフロー。
     * DB接続: 行う。
@@ -146,7 +150,7 @@ pnpm dev
 │       │   ├── usecase/      # Application Business Rules
 │       │   ├── adapter/      # Interface Adapters (Controllers)
 │       │   ├── infrastructure/ # Frameworks & Drivers
-│       │   │   └── db/       # Database Connection & Schema (Moved from packages/db)
+│       │   │   └── db/       # Database Connection & Schema
 │       │   └── index.ts      # DI & Routing
 │       └── package.json
 ├── packages/
@@ -221,6 +225,20 @@ DBロジック（スキーマやクライアント）も `infrastructure/db` に
 ### 必要なツール
 
 * **Infisical CLI**: ローカル開発および CI で必要です。
+
+### 統合テストの環境変数戦略 (Ephemeral .env)
+
+統合テスト実行時のみ一時的に環境変数ファイルを生成し、テスト終了後に削除する **Ephemeral (短命な) 戦略** を採用しています。
+これにより、IDE拡張機能との互換性を保ちつつ、ローカルに機密情報を永続させないセキュアな運用を実現しています。
+
+* **仕組み**: `apps/web/server/infrastructure/repositories/post.repository.integration.test.ts` などの統合テスト実行時に以下が自動実行されます。
+    1. **Setup**: `vitest.integration.config.ts` の `globalSetup` (`apps/web/test/integration-global-setup.ts`) が起動。
+    2. **Generate**: `infisical export` を実行し、一時的な `.env` ファイルを生成 (CI環境ではスキップ)。
+    3. **Load**: `apps/web/test/load-env.ts` が `.env` を読み込み。
+    4. **Teardown**: テスト終了後、`.env` ファイルを即座に削除。
+* **メリット**:
+  * **IDE互換性**: VS Code の Vitest 拡張機能からも問題なく動作します。
+  * **安全性**: `.env` ファイルがリポジトリに残存するリスクを排除します。
 
 ### 安全な環境変数管理 (Environment Safety)
 

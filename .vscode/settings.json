@@ -44,5 +44,6 @@
   },
   "[jsonc]": {
     "editor.defaultFormatter": "biomejs.biome"
-  }
+  },
+  "vitest.workspaceConfig": "packages/config/vitest.workspace.ts"
 }

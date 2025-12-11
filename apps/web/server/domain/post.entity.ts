@@ -70,10 +70,9 @@ export class Post {
       ...payload,
       updatedAt: new Date(),
     }
-    // We validate the resulting state against the partial CreateSchema check if needed,
-    // or just trust the inputs? Ideally we validate.
-    // Since we don't have a "UpdateSchema" derived from PostSchema exposed here yet,
-    // we assume payload is valid.
+    // Validate the resulting state against the core schema
+    PostCoreSchema.parse(updated)
+
     return new Post(updated)
   }
 
