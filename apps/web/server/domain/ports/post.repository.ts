@@ -1,11 +1,8 @@
-import type { Post } from "@/server/domain/post.entity"
+import type { Post } from "../post.entity"
 
 export interface PostRepository {
   findAll(): Promise<Post[]>
-  create(post: { title: string; content: string }): Promise<Post>
-  update(
-    id: number,
-    post: { title?: string; content?: string },
-  ): Promise<Post | null>
-  delete(id: number): Promise<Post | null>
+  findById(id: string): Promise<Post | null>
+  save(post: Post): Promise<Post>
+  delete(id: string): Promise<Post | null>
 }

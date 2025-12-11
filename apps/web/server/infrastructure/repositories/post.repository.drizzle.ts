@@ -1,52 +1,89 @@
 import { eq } from "drizzle-orm"
 import type { PostRepository } from "@/server/domain/ports/post.repository"
-import type { Post } from "@/server/domain/post.entity"
+import { Post } from "@/server/domain/post.entity"
 import { db } from "@/server/infrastructure/db/client"
 import { posts } from "@/server/infrastructure/db/schema"
 
 export class PostRepositoryImpl implements PostRepository {
   async findAll(): Promise<Post[]> {
-    return await db.select().from(posts)
+    const results = await db.select().from(posts)
+    return results.map((p) =>
+      Post.reconstruct({
+        id: p.id,
+        title: p.title ?? "",
+        content: p.content ?? "",
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+      }),
+    )
   }
 
-  async create(post: { title: string; content: string }): Promise<Post> {
-    const newPost = await db.insert(posts).values(post).returning()
-    if (!newPost[0]) {
-      throw new Error("Failed to create post")
-    }
-    return newPost[0]
+  async findById(id: string): Promise<Post | null> {
+    const results = await db.select().from(posts).where(eq(posts.id, id))
+    const p = results[0]
+    if (!p) return null
+
+    return Post.reconstruct({
+      id: p.id,
+      title: p.title ?? "",
+      content: p.content ?? "",
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+    })
   }
 
-  async update(
-    id: number,
-    post: { title?: string; content?: string },
-  ): Promise<Post | null> {
-    const updatedPost = await db
-      .update(posts)
-      .set({
-        ...post,
-        updatedAt: new Date(),
+  async save(post: Post): Promise<Post> {
+    const data = post.toJSON()
+
+    if (!post.isPersisted()) {
+      // Create (Insert)
+      const result = await db.insert(posts).values(data).returning()
+      const newPostData = result[0]
+      if (!newPostData) throw new Error("Failed to create post")
+
+      return Post.reconstruct({
+        id: newPostData.id,
+        title: newPostData.title ?? "",
+        content: newPostData.content ?? "",
+        createdAt: newPostData.createdAt,
+        updatedAt: newPostData.updatedAt,
       })
-      .where(eq(posts.id, id))
-      .returning()
-
-    if (!updatedPost[0]) {
-      return null
     }
 
-    return updatedPost[0]
+    // Update (Upsert)
+    await db
+      .insert(posts)
+      .values({
+        id: data.id,
+        title: data.title ?? "",
+        content: data.content ?? "",
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+      })
+      .onConflictDoUpdate({
+        target: posts.id,
+        set: {
+          title: data.title,
+          content: data.content,
+          updatedAt: data.updatedAt,
+        },
+      })
+      .returning()
+
+    return post
   }
 
-  async delete(id: number): Promise<Post | null> {
-    const deletedPost = await db
-      .delete(posts)
-      .where(eq(posts.id, id))
-      .returning()
+  async delete(id: string): Promise<Post | null> {
+    const deleted = await db.delete(posts).where(eq(posts.id, id)).returning()
+    const p = deleted[0]
+    if (!p) return null
 
-    if (!deletedPost[0]) {
-      return null
-    }
-
-    return deletedPost[0]
+    return Post.reconstruct({
+      id: p.id,
+      title: p.title ?? "",
+      content: p.content ?? "",
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+    })
   }
 }
