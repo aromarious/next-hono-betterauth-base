@@ -17,9 +17,14 @@ export const PostCoreSchema = PostSchema.omit({
 })
 
 export type PostType = z.infer<typeof PostSchema>
+export type PostCoreType = z.infer<typeof PostCoreSchema>
 
-// Internal props type allows optional ID for pre-persistence state
-type PostProps = Omit<PostType, "id"> & { id?: string }
+// Internal props: Core data + Optional system fields
+type PostProps = PostCoreType & {
+  id?: string
+  createdAt?: Date
+  updatedAt?: Date
+}
 
 export class Post {
   private constructor(public readonly props: PostProps) {}
@@ -45,14 +50,11 @@ export class Post {
   }
 
   public static create(payload: z.infer<typeof PostCoreSchema>): Post {
-    const now = new Date()
     // Validate payload against PostCoreSchema
     const validPayload = PostCoreSchema.parse(payload)
 
     return new Post({
       ...validPayload,
-      createdAt: now,
-      updatedAt: now,
     })
   }
 

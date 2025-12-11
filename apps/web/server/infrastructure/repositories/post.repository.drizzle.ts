@@ -37,7 +37,14 @@ export class PostRepositoryImpl implements PostRepository {
 
     if (!post.isPersisted()) {
       // Create (Insert)
-      const result = await db.insert(posts).values(data).returning()
+      // Drizzle handles missing default columns (id, createdAt) if they are undefined
+      const result = await db
+        .insert(posts)
+        .values({
+          title: data.title,
+          content: data.content,
+        })
+        .returning()
       const newPostData = result[0]
       if (!newPostData) throw new Error("Failed to create post")
 
@@ -51,14 +58,30 @@ export class PostRepositoryImpl implements PostRepository {
     }
 
     // Update (Upsert)
+    // For update, we expect id and probably timestamps involved.
+    // However, onConflictDoUpdate needs specific handling.
+
+    // Ensure we have values to insert for upsert attempt.
+    // If createdAt is missing (should only happen on new post, but this block is isPersisted),
+    // we should fallback or throw. But isPersisted checks id, so id exists.
+    // createdAt might be missing if reconstructing via create() manually with ID? No, create() has no ID.
+    // Reconstruct requires full props.
+
+    // So if isPersisted is true, it came from reconstruct/save, so fields should exist.
+    // But typings say optional. Let's handle safely.
+
+    if (!data.createdAt) {
+      throw new Error("Cannot save persisted entity without createdAt")
+    }
+
     await db
       .insert(posts)
       .values({
-        id: data.id,
+        id: data.id!,
         title: data.title ?? "",
         content: data.content ?? "",
         createdAt: data.createdAt,
-        updatedAt: data.updatedAt,
+        updatedAt: data.updatedAt ?? new Date(),
       })
       .onConflictDoUpdate({
         target: posts.id,
