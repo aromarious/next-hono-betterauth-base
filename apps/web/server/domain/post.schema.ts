@@ -1,7 +1,6 @@
 import type { z } from "zod"
-import { PostCoreSchema } from "./post.entity"
-
-export { PostCoreSchema }
+import { PostCoreSchema, PostSchema } from "./post.entity"
+export { PostCoreSchema, PostSchema }
 
 export const CreatePostSchema = PostCoreSchema
 

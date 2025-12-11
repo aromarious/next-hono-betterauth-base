@@ -1,17 +1,19 @@
 import { eq } from "drizzle-orm"
 import type { PostRepository } from "@/server/domain/ports/post.repository"
 import { Post } from "@/server/domain/post.entity"
-import { db } from "@/server/infrastructure/db/client"
+import type { DrizzleClient } from "@/server/infrastructure/db/client"
 import { PostTable } from "@/server/infrastructure/db/schema"
 
 export class PostRepositoryImpl implements PostRepository {
+  constructor(private readonly db: DrizzleClient) {}
+
   async findAll(): Promise<Post[]> {
-    const results = await db.select().from(PostTable)
+    const results = await this.db.select().from(PostTable)
     return results.map((p) => Post.reconstruct({ ...p }))
   }
 
   async findById(id: string): Promise<Post | null> {
-    const results = await db
+    const results = await this.db
       .select()
       .from(PostTable)
       .where(eq(PostTable.id, id))
@@ -27,7 +29,7 @@ export class PostRepositoryImpl implements PostRepository {
     if (!post.isPersisted()) {
       // Create (Insert)
       // Drizzle handles missing default columns (id, createdAt) if they are undefined
-      const result = await db
+      const result = await this.db
         .insert(PostTable)
         .values({
           title: data.title,
@@ -57,10 +59,10 @@ export class PostRepositoryImpl implements PostRepository {
       throw new Error("Cannot save persisted entity without createdAt")
     }
 
-    const result = await db
+    const result = await this.db
       .insert(PostTable)
       .values({
-        id: data.id!,
+        id: data.id,
         title: data.title ?? "",
         content: data.content ?? "",
         createdAt: data.createdAt,
@@ -83,7 +85,7 @@ export class PostRepositoryImpl implements PostRepository {
   }
 
   async delete(id: string): Promise<Post | null> {
-    const deleted = await db
+    const deleted = await this.db
       .delete(PostTable)
       .where(eq(PostTable.id, id))
       .returning()
