@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm"
-import type { Post } from "@/server/domain/post"
+import type { PostRepository } from "@/server/domain/ports/post.repository"
+import type { Post } from "@/server/domain/post.entity"
 import { db } from "@/server/infrastructure/db/client"
 import { posts } from "@/server/infrastructure/db/schema"
-import type { PostRepository } from "@/server/usecase/ports/post.repository"
 
 export class PostRepositoryImpl implements PostRepository {
   async findAll(): Promise<Post[]> {

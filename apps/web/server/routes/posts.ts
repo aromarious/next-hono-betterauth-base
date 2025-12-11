@@ -1,7 +1,8 @@
 import { zValidator } from "@hono/zod-validator"
-import { type Context, Hono } from "hono"
+import { Hono } from "hono"
+import { createFactory } from "hono/factory"
 import { z } from "zod"
-import { PostRepositoryImpl } from "@/server/infrastructure/repositories/post.repository"
+import { PostRepositoryImpl } from "@/server/infrastructure/repositories/post.repository.drizzle"
 
 // Instantiate repository (Dependency Injection is manual for now)
 const postRepository = new PostRepositoryImpl()
@@ -18,41 +19,44 @@ const updatePostSchema = z.object({
 
 // --- Controller ---
 
-const controller = {
-  getPosts: async (c: Context) => {
+const factory = createFactory()
+
+const handlers = {
+  getPosts: factory.createHandlers(async (c) => {
     const allPosts = await postRepository.findAll()
     return c.json(allPosts)
-  },
+  }),
 
-  createPost: async (c: Context) => {
-    // Note: Cast to any to bypass Hono's strict Context typing in decoupled handlers
-    const args = (c.req as any).valid("json") as z.infer<
-      typeof createPostSchema
-    >
-    const newPost = await postRepository.create(args)
-    return c.json(newPost, 201)
-  },
+  createPost: factory.createHandlers(
+    zValidator("json", createPostSchema),
+    async (c) => {
+      const args = c.req.valid("json")
+      const newPost = await postRepository.create(args)
+      return c.json(newPost, 201)
+    },
+  ),
 
-  updatePost: async (c: Context) => {
-    const id = Number(c.req.param("id"))
-    const args = (c.req as any).valid("json") as z.infer<
-      typeof updatePostSchema
-    >
+  updatePost: factory.createHandlers(
+    zValidator("json", updatePostSchema),
+    async (c) => {
+      const id = Number(c.req.param("id"))
+      const args = c.req.valid("json")
 
-    if (Number.isNaN(id)) {
-      return c.json({ error: "Invalid ID" }, 400)
-    }
+      if (Number.isNaN(id)) {
+        return c.json({ error: "Invalid ID" }, 400)
+      }
 
-    const updatedPost = await postRepository.update(id, args)
+      const updatedPost = await postRepository.update(id, args)
 
-    if (!updatedPost) {
-      return c.json({ error: "Post not found" }, 404)
-    }
+      if (!updatedPost) {
+        return c.json({ error: "Post not found" }, 404)
+      }
 
-    return c.json(updatedPost)
-  },
+      return c.json(updatedPost)
+    },
+  ),
 
-  deletePost: async (c: Context) => {
+  deletePost: factory.createHandlers(async (c) => {
     const id = Number(c.req.param("id"))
 
     if (Number.isNaN(id)) {
@@ -66,13 +70,13 @@ const controller = {
     }
 
     return c.json(deletedPost)
-  },
+  }),
 }
 
 const app = new Hono()
-  .get("/", controller.getPosts)
-  .post("/", zValidator("json", createPostSchema), controller.createPost)
-  .put("/:id", zValidator("json", updatePostSchema), controller.updatePost)
-  .delete("/:id", controller.deletePost)
+  .get("/", ...handlers.getPosts)
+  .post("/", ...handlers.createPost)
+  .put("/:id", ...handlers.updatePost)
+  .delete("/:id", ...handlers.deletePost)
 
 export default app
