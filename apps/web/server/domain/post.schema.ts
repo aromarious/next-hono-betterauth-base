@@ -1,11 +1,11 @@
 import type { z } from "zod"
-import { PostPropsSchema } from "./post.entity"
+import { PostCoreSchema } from "./post.entity"
 
-export { PostPropsSchema }
+export { PostCoreSchema }
 
-export const CreatePostSchema = PostPropsSchema
+export const CreatePostSchema = PostCoreSchema
 
-export const UpdatePostSchema = PostPropsSchema.partial()
+export const UpdatePostSchema = PostCoreSchema.partial()
 
 export type CreatePostInput = z.infer<typeof CreatePostSchema>
 export type UpdatePostInput = z.infer<typeof UpdatePostSchema>

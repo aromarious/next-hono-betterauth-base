@@ -2,7 +2,7 @@ import { zValidator } from "@hono/zod-validator"
 import { Hono } from "hono"
 import { createFactory } from "hono/factory"
 import { Post } from "@/server/domain/post.entity"
-import { PostPropsSchema, UpdatePostSchema } from "@/server/domain/post.schema"
+import { PostCoreSchema, UpdatePostSchema } from "@/server/domain/post.schema"
 import { PostRepositoryImpl } from "@/server/infrastructure/repositories/post.repository.drizzle"
 
 // Instantiate repository (Dependency Injection is manual for now)
@@ -19,7 +19,7 @@ const handlers = {
   }),
 
   createPost: factory.createHandlers(
-    zValidator("json", PostPropsSchema),
+    zValidator("json", PostCoreSchema),
     async (c) => {
       const args = c.req.valid("json")
       const newPost = Post.create(args)

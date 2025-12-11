@@ -9,8 +9,8 @@ export const PostSchema = z.object({
   updatedAt: z.date(),
 })
 
-// 2. Derive Props Schema from Full Schema
-export const PostPropsSchema = PostSchema.omit({
+// 2. Derive Core Schema from Full Schema
+export const PostCoreSchema = PostSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -44,10 +44,10 @@ export class Post {
     return this.props.updatedAt
   }
 
-  public static create(payload: z.infer<typeof PostPropsSchema>): Post {
+  public static create(payload: z.infer<typeof PostCoreSchema>): Post {
     const now = new Date()
-    // Validate payload against PostPropsSchema
-    const validPayload = PostPropsSchema.parse(payload)
+    // Validate payload against PostCoreSchema
+    const validPayload = PostCoreSchema.parse(payload)
 
     return new Post({
       ...validPayload,
@@ -65,7 +65,7 @@ export class Post {
     return !!this.props.id
   }
 
-  public update(payload: Partial<z.infer<typeof PostPropsSchema>>): Post {
+  public update(payload: Partial<z.infer<typeof PostCoreSchema>>): Post {
     const updated = {
       ...this.props,
       ...payload,
