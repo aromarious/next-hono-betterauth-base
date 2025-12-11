@@ -19,79 +19,65 @@ export const PostCoreSchema = PostSchema.omit({
 export type PostType = z.infer<typeof PostSchema>
 export type PostCoreType = z.infer<typeof PostCoreSchema>
 
+// Internal props: Core data + Optional system fields
+type PostProps = PostCoreType &
+  Partial<Pick<PostType, "id" | "createdAt" | "updatedAt">>
+
 export class Post {
-  private constructor(
-    private readonly core: PostCoreType,
-    private readonly system?: {
-      id: string
-      createdAt: Date
-      updatedAt: Date
-    },
-  ) {}
+  private constructor(public readonly props: PostProps) {}
 
   public get id() {
-    return this.system?.id
+    return this.props.id
   }
 
   public get title() {
-    return this.core.title
+    return this.props.title
   }
 
   public get content() {
-    return this.core.content
+    return this.props.content
   }
 
   public get createdAt() {
-    return this.system?.createdAt
+    return this.props.createdAt
   }
 
   public get updatedAt() {
-    return this.system?.updatedAt
+    return this.props.updatedAt
   }
 
   public static create(payload: z.infer<typeof PostCoreSchema>): Post {
     // Validate payload against PostCoreSchema
     const validPayload = PostCoreSchema.parse(payload)
 
-    return new Post(validPayload)
+    return new Post({
+      ...validPayload,
+    })
   }
 
   public static reconstruct(payload: PostType): Post {
     const data = PostSchema.parse(payload)
-    const { id, createdAt, updatedAt, ...core } = data
-
-    return new Post(core, { id, createdAt, updatedAt })
+    return new Post(data)
   }
 
   public isPersisted(): boolean {
-    return !!this.system?.id
+    return !!this.props.id
   }
 
   public update(payload: Partial<z.infer<typeof PostCoreSchema>>): Post {
-    const updatedCore = {
-      ...this.core,
+    const updated = {
+      ...this.props,
       ...payload,
+      updatedAt: new Date(),
     }
-
-    // For update, we preserve system fields but update updatedAt if it exists.
-    // However, since this returns a new Post instance that is "dirty" (to be saved),
-    // we keep the ID but maybe we should update updatedAt here?
-    // Or let Repository handle it?
-    // Previous logic updated updatedAt on the instance. Let's keep that behavior.
-
-    const newSystem = this.system
-      ? { ...this.system, updatedAt: new Date() }
-      : undefined
-
-    return new Post(updatedCore, newSystem)
+    // We validate the resulting state against the partial CreateSchema check if needed,
+    // or just trust the inputs? Ideally we validate.
+    // Since we don't have a "UpdateSchema" derived from PostSchema exposed here yet,
+    // we assume payload is valid.
+    return new Post(updated)
   }
 
   public toJSON() {
-    return {
-      ...this.core,
-      id: this.system?.id,
-      createdAt: this.system?.createdAt,
-      updatedAt: this.system?.updatedAt,
-    }
+    return { ...this.props }
   }
 }
