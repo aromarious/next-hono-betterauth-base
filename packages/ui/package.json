@@ -1,0 +1,33 @@
+{
+  "name": "@packages/ui",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./lib/utils": "./src/lib/utils.ts",
+    "./postcss.config": "./postcss.config.js",
+    "./tailwind.config": "./tailwind.config.js"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
+    "lucide-react": "^0.363.0",
+    "tailwind-merge": "^2.2.2",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "@packages/config": "workspace:*",
+    "autoprefixer": "catalog:",
+    "postcss": "catalog:",
+    "tailwindcss": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "tailwindcss": "catalog:"
+  }
+}

@@ -1,0 +1,21 @@
+packages:
+  - apps/*
+  - packages/*
+catalog:
+  react: ^19.0.0
+  react-dom: ^19.0.0
+  '@types/react': ^19.0.0
+  '@types/react-dom': ^19.0.0
+  '@types/node': ^20.11.24
+  typescript: ^5.3.3
+  tailwindcss: ^3.4.1
+  postcss: ^8.4.38
+  autoprefixer: ^10.4.19
+  vitest: ^1.2.1
+  zod: ^4.1.13
+  '@vitejs/plugin-react': ^4.2.1
+onlyBuiltDependencies:
+  - '@biomejs/biome'
+  - es5-ext
+  - esbuild
+  - sharp
