@@ -17,7 +17,7 @@ describe("Posts API Integration Test", () => {
         title: "Integration Title",
         content: "Content via API",
       }
-      const createRes = await app.request("/api/posts", {
+      const createRes = await app.request("/api/v0/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(createPayload),
@@ -28,7 +28,7 @@ describe("Posts API Integration Test", () => {
       expect(created.id).toBeDefined()
 
       // 2. Retrieve all posts
-      const listRes = await app.request("/api/posts")
+      const listRes = await app.request("/api/v0/posts")
       expect(listRes.status).toBe(200)
       const list = await listRes.json()
       expect(list).toHaveLength(1)
@@ -36,7 +36,7 @@ describe("Posts API Integration Test", () => {
       expect(list[0]!.id).toBe(created.id)
 
       // 3. Retrieve single post
-      const getRes = await app.request(`/api/posts/${created.id}`)
+      const getRes = await app.request(`/api/v0/posts/${created.id}`)
       expect(getRes.status).toBe(200)
       const single = await getRes.json()
       expect(single.id).toBe(created.id)
@@ -48,7 +48,7 @@ describe("Posts API Integration Test", () => {
         title: "Updated Title",
         content: "Updated Content via API",
       }
-      const updateRes = await app.request(`/api/posts/${created.id}`, {
+      const updateRes = await app.request(`/api/v0/posts/${created.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatePayload),
@@ -60,31 +60,31 @@ describe("Posts API Integration Test", () => {
       expect(updated.content).toBe(updatePayload.content)
 
       // Verify the update by retrieving again
-      const getUpdatedRes = await app.request(`/api/posts/${created.id}`)
+      const getUpdatedRes = await app.request(`/api/v0/posts/${created.id}`)
       expect(getUpdatedRes.status).toBe(200)
       const verifiedUpdated = await getUpdatedRes.json()
       expect(verifiedUpdated.title).toBe(updatePayload.title)
       expect(verifiedUpdated.content).toBe(updatePayload.content)
 
       // 5. Delete a post
-      const deleteRes = await app.request(`/api/posts/${created.id}`, {
+      const deleteRes = await app.request(`/api/v0/posts/${created.id}`, {
         method: "DELETE",
       })
       expect(deleteRes.status).toBe(204)
 
       // Verify deletion by attempting to retrieve
-      const getDeletedRes = await app.request(`/api/posts/${created.id}`)
+      const getDeletedRes = await app.request(`/api/v0/posts/${created.id}`)
       expect(getDeletedRes.status).toBe(404)
 
       // Verify list is empty
-      const listAfterDeleteRes = await app.request("/api/posts")
+      const listAfterDeleteRes = await app.request("/api/v0/posts")
       expect(listAfterDeleteRes.status).toBe(200)
       const listAfterDelete = await listAfterDeleteRes.json()
       expect(listAfterDelete).toHaveLength(0)
     })
 
     it("存在しない投稿に対して 404 を返すべき", async () => {
-      const res = await app.request("/api/posts/non-existent-id")
+      const res = await app.request("/api/v0/posts/non-existent-id")
       expect(res.status).toBe(404)
     })
   })

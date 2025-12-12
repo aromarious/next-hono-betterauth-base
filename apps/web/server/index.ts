@@ -6,6 +6,10 @@ import system from "./routes/system"
 
 // Honoアプリケーションの新しいインスタンスを作成し、厳格なルーティングを無効化し、APIのベースパス /api を設定
 const app = new Hono({ strict: false }).basePath("/api")
+
+// v0 アプリケーション (すべての既存ルートはここに移動)
+const v0 = new Hono().route("/posts", posts).route("/system", system) // system routes (hello, health) also available under /v0
+
 app
   // CORS ミドルウェアをすべてのルート (`/*`) に適用し、異なるオリジンからのリクエストを許可します。
   .use(
@@ -22,9 +26,14 @@ app
     await next()
   })
 
-const routes = app //
-  .route("/", system)
-  .route("/posts", posts)
+// ルート直下のヘルスチェック (/api/health)
+app.get("/health", (c) => c.json({ status: "ok" }))
+
+import { API_VERSIONS } from "../lib/api-versions"
+
+// v0 アプリをマウント (/api/v0)
+const routes = app.route(`/${API_VERSIONS.v0}`, v0)
 
 export type AppType = typeof routes
+export type ApiV0Type = typeof v0
 export default app

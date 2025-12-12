@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "infisical run -- next build",
     "lint": "next lint",
     "test": "pnpm test:unit && pnpm test:int",
     "test:unit": "vitest -c vitest.config.ts --run",

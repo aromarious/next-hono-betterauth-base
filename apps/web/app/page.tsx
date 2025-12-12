@@ -1,10 +1,11 @@
 import { env } from "@/env"
-import { client } from "@/lib/client"
+import { createClient } from "@/lib/client"
 
 export const dynamic = "force-dynamic"
 
 export default async function Home() {
-  const res = await client.api.hello.$get()
+  const client = createClient("v0")
+  const res = await client.system.hello.$get()
   const data = await res.json()
 
   return (
