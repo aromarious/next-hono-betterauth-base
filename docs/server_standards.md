@@ -12,19 +12,20 @@
 `apps/web/server/index.ts` は、グローバルミドルウェアの適用と、各機能モジュールのマウントのみを行います。
 
 ```typescript
-// ✅ Good: 目次として機能している
-import system from "./routes/system"
-import posts from "./routes/posts"
+// ✅ Good: 設定関数をインポート
+import { configureSystemRoutes } from "./routes/system"
+import { configurePostsRoutes } from "./routes/posts"
 
-const app = new Hono().basePath("/api")
+// ベースアプリの作成
+const app = new OpenAPIHono().basePath("/api")
 
-// Middleware
-app.use("/*", cors(...))
+// v0 アプリの作成とルートの適用 (チェーンしていく)
+const v0 = new OpenAPIHono()
+const v0_with_system = configureSystemRoutes(v0)
+const v0_final = configurePostsRoutes(v0_with_system)
 
-// Routes Mounting
-const routes = app
-  .route("/", system)
-  .route("/posts", posts)
+// マウント
+const routes = app.route("/v0", v0_final)
 
 export type AppType = typeof routes
 export default app
@@ -37,31 +38,47 @@ export default app
 
 ## 2. Feature Modules (`server/routes/*.ts`)
 
-各機能モジュールは、独立した `Hono` インスタンスとして定義し、メソッドチェーン形式で記述します。
+各機能モジュールは、**設定関数 (Configuration Function)** をエクスポートするパターンを採用しています。これは、Hono RPC (`hc`) の型推論を正しく機能させるために重要です。
 
-### インスタンス化とチェーン
+### 構成パターン
 
-```typescript
-import { Hono } from "hono"
-
-// ✅ Good: 新規インスタンスを作成し、チェーンで繋ぐ
-const app = new Hono()
-  .get("/", (c) => c.json({}))
-  .post("/", (c) => c.json({}))
-
-export default app
-```
-
-### ハンドラの分離（推奨）
-
-ルート定義が見えにくくなる場合、ハンドラ関数を分離することを推奨します。
+1. **ルート定義 (`createRoute`)**: OpenAPI定義を記述します。
+2. **設定関数 (`configure...Routes`)**: アプリケーションインスタンスを受け取り、ルートを登録します。
 
 ```typescript
-// ✅ Good: 定義と実装の分離
-const app = new Hono()
-  .get("/", getPosts)
-  .post("/", createPostValidator, createPost)
+import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi"
+import type { Env } from "hono"
+
+// 1. ルート定義 (OpenAPI)
+const listPostsRoute = createRoute({
+  method: "get",
+  path: "/",
+  responses: { ... }
+})
+
+// 2. 設定関数 (ジェネリクスを使用して型情報を維持する)
+// <E extends Env, S extends {}, P extends string> は必須です
+export const configurePostsRoutes = <E extends Env, S extends {}, P extends string>(
+  app: OpenAPIHono<E, S, P>
+) => {
+  // 必要であればここで Repository / UseCase をインスタンス化 (DI)
+  const repository = new PostRepository(db)
+  const useCase = new PostUseCase(repository)
+
+  return app
+    .openapi(listPostsRoute, async (c) => {
+      const posts = await useCase.listPosts()
+      return c.json(posts)
+    })
+    // 複数のルートをメソッドチェーンで繋ぐ
+    .openapi(createPostRoute, async (c) => { ... })
+}
 ```
+
+### なぜこのパターンなのか？
+
+従来の `const app = new OpenAPIHono(); export default app;` パターンでは、`.route()` でマウントした際に型情報の一部（特にSchema定義）が失われ、クライアント側 (`hc`) で `any` 型になってしまう問題があります。
+この「設定関数パターン」では、ジェネリクスを通じて親アプリケーションの型定義を維持したままルートを追加できるため、完全な型安全性を確保できます。
 
 ## 3. ディレクトリ構成とアーキテクチャ
 
@@ -110,21 +127,22 @@ server/
 テスト容易性を高めるため、構成要素はコンストラクタ経由で依存先を受け取ります。現状はルート定義ファイル内で手動でDIを組み立てます。
 
 ```typescript
-// server/routes/posts.ts での組み立て例
+// server/routes/posts.ts 内の configure 関数での組み立て例
 
-// 1. DB Client
-import { db } from "@/server/infrastructure/db/client"
+export const configurePostsRoutes = <E extends Env, S extends {}, P extends string>(
+  app: OpenAPIHono<E, S, P>
+) => {
+  // 1. DB Client
+  const repository = new PostRepository(db)
+  
+  // 2. UseCase (Repositoryを受け取る)
+  const useCase = new PostUseCase(repository)
 
-// 2. Repository (DBを受け取る)
-const postRepository = new PostRepository(db)
-
-// 3. UseCase (Repositoryを受け取る)
-const postUseCase = new PostUseCase(postRepository)
-
-// 4. Routeは UseCase (またはRepo) を使う
-app.post("/", ..., async (c) => {
-    await postUseCase.createPost(...)
-})
+  // 3. Routeは UseCase を使う
+  return app.openapi(createRoute, async (c) => {
+      await useCase.createPost(...)
+  })
+}
 ```
 
 ## 5. ドメインモデル実装標準

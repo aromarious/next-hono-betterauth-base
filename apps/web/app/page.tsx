@@ -14,7 +14,6 @@ export default async function Home() {
         <h1 className="text-4xl font-bold">Webservice Next Hono Base</h1>
         <p className="text-xl mt-4">API Response: {data.message}</p>
         <p className="text-xl mt-4">env: {env.NODE_ENV}</p>
-        <p className="text-xl mt-4">env: {env.DATABASE_URL}</p>
       </div>
     </main>
   )

@@ -2,18 +2,18 @@ import { OpenAPIHono } from "@hono/zod-openapi"
 import { Scalar } from "@scalar/hono-api-reference"
 import { cors } from "hono/cors"
 import { env } from "@/env"
-import posts from "./routes/posts"
-import system, { healthHandler, healthRoute } from "./routes/system"
+import { configurePostsRoutes } from "./routes/posts"
+import { configureHealthRoute, configureSystemRoutes } from "./routes/system"
 
 // Honoアプリケーションの新しいインスタンスを作成し、厳格なルーティングを無効化し、APIのベースパス /api を設定
 const app = new OpenAPIHono({ strict: false }).basePath("/api")
 
-app.openapi(healthRoute, healthHandler)
+configureHealthRoute(app)
 
 // v0 アプリケーション (すべての既存ルートはここに移動)
 const v0 = new OpenAPIHono()
-  .route("/", system) // /health, /hello
-  .route("/posts", posts)
+const v0_with_system = configureSystemRoutes(v0)
+const v0_final = configurePostsRoutes(v0_with_system)
 
 app
   // CORS ミドルウェアをすべてのルート (`/*`) に適用し、異なるオリジンからのリクエストを許可します。
@@ -38,6 +38,21 @@ app.doc("/doc", {
     version: "0.1.0",
     title: "Webservice Next Hono Base API",
   },
+  tags: [
+    { name: "System", description: "General system endpoints" },
+    { name: "v0/System", description: "v0 System endpoints" },
+    { name: "v0/Posts", description: "v0 Post management endpoints" },
+  ],
+  "x-tagGroups": [
+    {
+      name: "General",
+      tags: ["System"],
+    },
+    {
+      name: "v0",
+      tags: ["v0/System", "v0/Posts"],
+    },
+  ],
 })
 
 // Scalar API Reference
@@ -51,8 +66,8 @@ app.get(
 import { API_VERSIONS } from "../lib/api-versions"
 
 // v0 アプリをマウント (/api/v0)
-const routes = app.route(`/${API_VERSIONS.v0}`, v0)
+const routes = app.route(`/${API_VERSIONS.v0}`, v0_final)
 
 export type AppType = typeof routes
-export type ApiV0Type = typeof v0
+export type ApiV0Type = typeof v0_final
 export default app

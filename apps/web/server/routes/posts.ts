@@ -1,4 +1,4 @@
-import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi"
+import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi"
 import {
   CreatePostSchema,
   PostSchema,
@@ -11,14 +11,11 @@ import { PostUseCase } from "@/server/usecase/post.usecase"
 // Instantiate repository (Dependency Injection is manual for now)
 const postRepository = new PostRepository(db)
 const postUseCase = new PostUseCase(postRepository)
-
-const app = new OpenAPIHono()
-
-const tags = ["Posts"]
+const tags = ["v0/Posts"]
 
 const listPostsRoute = createRoute({
   method: "get",
-  path: "/",
+  path: "/posts",
   tags,
   responses: {
     200: {
@@ -32,14 +29,9 @@ const listPostsRoute = createRoute({
   },
 })
 
-app.openapi(listPostsRoute, async (c) => {
-  const allPosts = await postRepository.findAll()
-  return c.json(allPosts.map((p) => p.toJSON()) as any)
-})
-
 const getPostRoute = createRoute({
   method: "get",
-  path: "/:id",
+  path: "/posts/:id",
   tags,
   responses: {
     200: {
@@ -59,22 +51,9 @@ const getPostRoute = createRoute({
   },
 })
 
-app.openapi(getPostRoute, async (c) => {
-  const id = c.req.param("id")
-  if (!id) return c.json({ error: "Invalid ID" } as any, 400)
-
-  const post = await postRepository.findById(id)
-
-  if (!post) {
-    return c.json({ error: "Post not found" } as any, 404)
-  }
-
-  return c.json(post.toJSON() as any)
-})
-
 const createPostRoute = createRoute({
   method: "post",
-  path: "/",
+  path: "/posts",
   tags,
   request: {
     body: {
@@ -97,15 +76,9 @@ const createPostRoute = createRoute({
   },
 })
 
-app.openapi(createPostRoute, async (c) => {
-  const args = c.req.valid("json")
-  const savedPost = await postUseCase.createPost(args)
-  return c.json(savedPost.toJSON() as any, 201)
-})
-
 const updatePostRoute = createRoute({
   method: "put",
-  path: "/:id",
+  path: "/posts/:id",
   tags,
   request: {
     body: {
@@ -134,23 +107,9 @@ const updatePostRoute = createRoute({
   },
 })
 
-app.openapi(updatePostRoute, async (c) => {
-  const id = c.req.param("id")
-  if (!id) return c.json({ error: "Invalid ID" } as any, 400)
-  const args = c.req.valid("json")
-
-  const updatedPost = await postUseCase.updatePost(id, args)
-
-  if (!updatedPost) {
-    return c.json({ error: "Post not found" } as any, 404)
-  }
-
-  return c.json(updatedPost.toJSON() as any)
-})
-
 const deletePostRoute = createRoute({
   method: "delete",
-  path: "/:id",
+  path: "/posts/:id",
   tags,
   responses: {
     204: {
@@ -165,17 +124,60 @@ const deletePostRoute = createRoute({
   },
 })
 
-app.openapi(deletePostRoute, async (c) => {
-  const id = c.req.param("id")
-  if (!id) return c.json({ error: "Invalid ID" } as any, 400)
+import type { Env } from "hono"
 
-  const deletedPost = await postUseCase.deletePost(id)
+export const configurePostsRoutes = <
+  E extends Env,
+  S extends {},
+  P extends string,
+>(
+  app: OpenAPIHono<E, S, P>,
+) => {
+  return app
+    .openapi(listPostsRoute, async (c) => {
+      const allPosts = await postRepository.findAll()
+      return c.json(allPosts.map((p) => p.toJSON()) as any)
+    })
+    .openapi(getPostRoute, async (c) => {
+      const id = c.req.param("id")
+      if (!id) return c.json({ error: "Invalid ID" } as any, 400)
 
-  if (!deletedPost) {
-    return c.json({ error: "Post not found" } as any, 404)
-  }
+      const post = await postRepository.findById(id)
 
-  return c.body(null, 204)
-})
+      if (!post) {
+        return c.json({ error: "Post not found" } as any, 404)
+      }
 
-export default app
+      return c.json(post.toJSON() as any)
+    })
+    .openapi(createPostRoute, async (c) => {
+      const args = c.req.valid("json")
+      const savedPost = await postUseCase.createPost(args)
+      return c.json(savedPost.toJSON() as any, 201)
+    })
+    .openapi(updatePostRoute, async (c) => {
+      const id = c.req.param("id")
+      if (!id) return c.json({ error: "Invalid ID" } as any, 400)
+      const args = c.req.valid("json")
+
+      const updatedPost = await postUseCase.updatePost(id, args)
+
+      if (!updatedPost) {
+        return c.json({ error: "Post not found" } as any, 404)
+      }
+
+      return c.json(updatedPost.toJSON() as any)
+    })
+    .openapi(deletePostRoute, async (c) => {
+      const id = c.req.param("id")
+      if (!id) return c.json({ error: "Invalid ID" } as any, 400)
+
+      const deletedPost = await postUseCase.deletePost(id)
+
+      if (!deletedPost) {
+        return c.json({ error: "Post not found" } as any, 404)
+      }
+
+      return c.body(null, 204)
+    })
+}
