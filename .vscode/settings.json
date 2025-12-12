@@ -32,7 +32,6 @@
   "editor.codeActionsOnSave": {
     "source.organizeImports.biome": "explicit"
   },
-
   "[typescript]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
@@ -41,9 +40,5 @@
   },
   "[json]": {
     "editor.defaultFormatter": "biomejs.biome"
-  },
-  "[jsonc]": {
-    "editor.defaultFormatter": "biomejs.biome"
-  },
-  "vitest.workspaceConfig": "packages/config/vitest.workspace.ts"
+  }
 }
