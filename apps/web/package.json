@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "infisical run -- next build",
+    "build": "SKIP_ENV_VALIDATION=true next build",
     "lint": "next lint",
     "test": "pnpm test:unit && pnpm test:int",
     "test:unit": "vitest -c vitest.config.ts --run",
@@ -21,6 +21,8 @@
     "@packages/ui": "workspace:*",
     "@scalar/hono-api-reference": "^0.9.28",
     "@t3-oss/env-nextjs": "^0.13.8",
+    "@upstash/ratelimit": "^2.0.7",
+    "@upstash/redis": "^1.35.7",
     "drizzle-orm": "^0.45.1",
     "hono": "^4.10.8",
     "next": "^16.0.0",

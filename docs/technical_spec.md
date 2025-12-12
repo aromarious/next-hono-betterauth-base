@@ -250,12 +250,81 @@ Fail-fastな開発とキャッシュ事故防止のため、以下のルール�
 2. **キャッシュ設定 (Turbo)**:
     * 環境変数の値が変わった際にキャッシュが無効化されるよう、`turbo.json` の `globalEnv`/`env` を適切に設定します。
 
+## 7. レートリミット (Rate Limiting)
+
+API全体にレートリミット機能を導入し、DoS攻撃の防止、コスト削減、公平なリソース配分を実現します。
+
+### アーキテクチャ
+
+* **実装方式**: **Next.js Edge Middleware + Upstash Ratelimit**
+  * Next.js 16では`middleware.ts`が非推奨となり`proxy.ts`への移行が推奨されていますが、Edge Runtimeが必須のため、現時点では`middleware.ts`を使用します。
+  * 将来的にNext.jsがEdge Runtime対応の新しいソリューションを提供した際に移行を検討します。
+
+* **動作環境**: **Vercel Edge Runtime**
+  * リクエストがServerless Functionに到達する前にEdge(CDN)で処理されるため、超低レイテンシで動作します。
+  * 不正なリクエストを早期に遮断し、Serverless Functionの実行コストを削減します。
+
+* **レートリミットアルゴリズム**: **スライディングウィンドウ (Sliding Window)**
+  * `@upstash/ratelimit`が提供するアルゴリズムを使用し、正確なレート制限を実現します。
+
+### レート制限ルール
+
+| 設定項目 | 値 |
+| :--- | :--- |
+| **制限単位** | IPアドレス |
+| **制限数** | 10リクエスト/分 |
+| **除外パス** | `/api/health` (ヘルスチェックは制限対象外) |
+| **エラーレスポンス** | HTTP 429 Too Many Requests |
+
+### ストレージ (Upstash Redis)
+
+* **サービス**: [Upstash Redis](https://upstash.com/)
+  * Edge Runtime対応のHTTPベースRedisクライアントを提供します。
+  * 無料プラン: 10,000コマンド/日、100MBストレージ
+
+* **環境別データベース構成**:
+  * **開発用**: `webservice-ratelimit-dev` (オプション、レートリミットテスト時のみ使用)
+  * **本番用**: `webservice-ratelimit-prod`
+  * 統合テストやCI環境ではレートリミットを無効化するため、専用データベースは不要です。
+
+### 環境別の動作
+
+| 環境 | 動作 | 詳細 |
+| :--- | :--- | :--- |
+| **開発環境** | デフォルト無効化 | `DISABLE_RATE_LIMIT=true`または環境変数未設定。<br>レートリミット機能をテストしたい場合のみ、Upstash認証情報を設定して有効化。 |
+| **統合テスト** | 無効化 | `DISABLE_RATE_LIMIT=true`。ビジネスロジックのテストに集中。 |
+| **E2Eテスト** | 一部有効化 | レートリミット機能自体のテストを含む。テスト用または開発用Redisを使用。 |
+| **CI環境** | デフォルト無効化 | 必要なテストのみ有効化。 |
+| **本番環境** | 有効化 | Upstash本番用データベースを使用。 |
+
+### レスポンスヘッダー
+
+レート制限情報をレスポンスヘッダーに追加し、クライアント側で制限状況を確認できるようにします:
+
+| ヘッダー名 | 説明 |
+| :--- | :--- |
+| `X-RateLimit-Limit` | 制限数(例: 10) |
+| `X-RateLimit-Remaining` | 残りリクエスト数 |
+| `X-RateLimit-Reset` | リセット時刻(Unix timestamp) |
+
+### 実装ファイル
+
+* **Middleware**: `apps/web/middleware.ts`
+  * Edge Runtimeでリクエストをインターセプトし、レート制限をチェックします。
+  * Upstash Redisクライアントを初期化し、`@upstash/ratelimit`でレート制限を実装します。
+  * 環境変数`DISABLE_RATE_LIMIT`による無効化フラグをサポートします。
+
 ### 環境変数一覧
 
 | 変数名 | 必須 | 概要 | 使用箇所 |
 | :--- | :--- | :--- | :--- |
 | `DATABASE_URL` | **Yes** | PostgreSQL 接続文字列 | `apps/web/server/infrastructure/db/client.ts`<br>`apps/web/drizzle.config.ts` |
 | `NODE_ENV` | **Yes** | Node.js ランタイム環境 (`development`, `production`, `test`) | `apps/web/server`<br>`project-wide` |
+| `UPSTASH_REDIS_REST_URL` | **Yes** (本番) | Upstash RedisのREST API URL | `apps/web/middleware.ts` |
+| `UPSTASH_REDIS_REST_TOKEN` | **Yes** (本番) | Upstash RedisのREST APIトークン | `apps/web/middleware.ts` |
+| `DISABLE_RATE_LIMIT` | No | レートリミット無効化フラグ (開発・テスト環境用、デフォルト: `false`) | `apps/web/middleware.ts` |
+| `RATE_LIMIT_MAX_REQUESTS` | No | レート制限のリクエスト数 (デフォルト: `10`) | `apps/web/middleware.ts` |
+| `RATE_LIMIT_WINDOW` | No | レート制限のウィンドウ時間 (デフォルト: `1 m`) | `apps/web/middleware.ts` |
 | `CI` | No | CI環境フラグ (CI環境のみ) | `apps/web/playwright.config.ts` |
 
 > [!NOTE]

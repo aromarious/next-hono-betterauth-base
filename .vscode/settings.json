@@ -25,6 +25,23 @@
       "database": "webapp_test",
       "username": "postgres",
       "password": "postgres"
+    },
+    {
+      "pgOptions": {
+        "ssl": {
+          "rejectUnauthorized": true,
+          "pfx": ""
+        }
+      },
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "ep-empty-waterfall-a1fxxmnn-pooler.ap-southeast-1.aws.neon.tech",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "production",
+      "database": "neondb",
+      "username": "neondb_owner",
+      "password": "npg_U2WAs7gYyknc"
     }
   ],
   "editor.formatOnSave": true,

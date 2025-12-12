@@ -1,7 +1,14 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
-  "globalEnv": ["NODE_ENV", "DATABASE_URL"],
+  "globalEnv": [
+    "NODE_ENV",
+    "DATABASE_URL",
+    "UPSTASH_REDIS_REST_URL",
+    "UPSTASH_REDIS_REST_TOKEN",
+    "RATE_LIMIT_MAX_REQUESTS",
+    "RATE_LIMIT_WINDOW"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
