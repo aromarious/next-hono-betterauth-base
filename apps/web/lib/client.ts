@@ -6,7 +6,9 @@ import { type ApiVersion, LATEST_API_VERSION } from "./api-versions"
 const baseUrl =
   typeof window !== "undefined"
     ? window.location.origin
-    : "http://localhost:3000"
+    : process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3000"
 
 export const client = hc<AppType>(baseUrl)
 

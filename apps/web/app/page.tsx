@@ -1,19 +1,33 @@
-import { env } from "@/env"
+"use client"
+
+import { useEffect, useState } from "react"
 import { createClient } from "@/lib/client"
 
-export const dynamic = "force-dynamic"
+export default function Home() {
+  const [message, setMessage] = useState<string>("Loading...")
+  const [error, setError] = useState<string | null>(null)
 
-export default async function Home() {
-  const client = createClient("v0")
-  const res = await client.hello.$get()
-  const data = await res.json()
+  useEffect(() => {
+    const client = createClient("v0")
+    client.hello
+      .$get()
+      .then((res) => res.json())
+      .then((data) => setMessage(data.message))
+      .catch((err) => {
+        console.error("API Error:", err)
+        setError(err.message)
+      })
+  }, [])
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
         <h1 className="text-4xl font-bold">Webservice Next Hono Base</h1>
-        <p className="text-xl mt-4">API Response: {data.message}</p>
-        <p className="text-xl mt-4">env: {env.NODE_ENV}</p>
+        {error ? (
+          <p className="text-xl mt-4 text-red-500">Error: {error}</p>
+        ) : (
+          <p className="text-xl mt-4">API Response: {message}</p>
+        )}
       </div>
     </main>
   )
