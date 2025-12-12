@@ -222,6 +222,27 @@ DBロジック（スキーマやクライアント）も `infrastructure/db` に
 | **CI / Testing** | **Infisical CLI** | GitHub Actions などの CI/CD パイプライン内で CLI を使用し、テスト実行に必要なシークレットを動的に取得します。 |
 | **Production** | **Integration (Sync)** | **Infisical Integrations** 機能を使用し、Infisical からデプロイ先プラットフォーム（Vercel, AWS Parameter Store, Render 等）の環境変数ストアへ自動同期します。アプリケーションは標準の `process.env` を通じて値を参照するため、Infisical API の稼働状況に影響されません。 |
 
+### Vercel Integration設定
+
+本プロジェクトでは、**Infisical Vercel Integration**を使用してVercelの環境変数を自動同期しています。
+
+**設定内容**:
+
+* **Infisical環境**: `Production` (prod)
+* **同期先Vercel環境**: `Production` および `Preview`
+* **同期方法**: Infisical上での環境変数変更が、Vercelの該当環境に自動的に反映されます
+
+**手順**:
+
+1. Infisicalダッシュボードで「Integrations」→「Vercel」を選択
+2. Vercelアカウントを接続
+3. 同期元：`Production` 環境を選択
+4. 同期先：Vercelの`Production`と`Preview`環境を選択
+5. 必要な環境変数（`DATABASE_URL`, `UPSTASH_REDIS_REST_URL`など）が自動的に同期されます
+
+> [!NOTE]
+> Vercelの`Development`環境はローカル開発用のため、同期対象外としています。ローカル開発ではInfisical CLIを直接使用します。
+
 ### 必要なツール
 
 * **Infisical CLI**: ローカル開発および CI で必要です。
