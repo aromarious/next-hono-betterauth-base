@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic"
 
 export default async function Home() {
   const client = createClient("v0")
-  const res = await client.system.hello.$get()
+  const res = await client.hello.$get()
   const data = await res.json()
 
   return (

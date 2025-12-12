@@ -15,17 +15,20 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@hono/zod-validator": "^0.2.1",
+    "@asteasolutions/zod-to-openapi": "^8.2.0",
+    "@hono/zod-openapi": "^1.1.5",
+    "@hono/zod-validator": "^0.2.2",
     "@packages/ui": "workspace:*",
+    "@scalar/hono-api-reference": "^0.9.28",
     "@t3-oss/env-nextjs": "^0.13.8",
     "drizzle-orm": "^0.45.1",
-    "hono": "^4.2.0",
-    "next": "14.1.3",
-    "postgres": "^3.4.3",
+    "hono": "^4.10.8",
+    "next": "15.0.3",
+    "postgres": "^3.4.7",
     "react": "catalog:",
     "react-dom": "catalog:",
     "ulid": "^3.0.2",
-    "zod": "^3.25.76"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@packages/config": "workspace:*",
@@ -37,6 +40,7 @@
     "autoprefixer": "catalog:",
     "dotenv": "^17.2.3",
     "drizzle-kit": "^0.31.8",
+    "eslint": "^9.15.0",
     "postcss": "catalog:",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
