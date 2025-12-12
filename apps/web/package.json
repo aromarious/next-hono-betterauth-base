@@ -10,6 +10,8 @@
     "test": "pnpm test:unit && pnpm test:int",
     "test:unit": "vitest -c vitest.config.ts --run",
     "test:int": "infisical run --env=staging -- vitest -c vitest.integration.config.ts --run",
+    "test:coverage": "vitest run --coverage",
+    "test:int:coverage": "infisical run --env=staging -- vitest -c vitest.integration.config.ts --run --coverage",
     "test:e2e": "playwright test"
   },
   "dependencies": {
@@ -31,6 +33,7 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@vitest/coverage-v8": "^1.6.1",
     "autoprefixer": "catalog:",
     "dotenv": "^17.2.3",
     "drizzle-kit": "^0.31.8",

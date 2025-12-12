@@ -18,6 +18,10 @@ export default defineConfig(() => {
       fileParallelism: false, // Enforce sequential execution
       globalSetup: ["./test/integration-global-setup.ts"],
       setupFiles: ["./test/load-env.ts"],
+      coverage: {
+        provider: "v8" as "v8",
+        reporter: ["text", "json", "html"],
+      },
     },
   }
 })
