@@ -31,7 +31,12 @@ app
     await next()
   })
 
-// OpenAPI Spec definitions
+import { API_VERSIONS } from "../lib/api-versions"
+
+// v0 アプリをマウント (/api/v0)
+const routes = app.route(`/${API_VERSIONS.v0}`, v0_final)
+
+// OpenAPI Spec definitions (すべてのルート登録後に定義)
 app.doc("/doc", {
   openapi: "3.0.0",
   info: {
@@ -62,11 +67,6 @@ app.get(
     url: "/api/doc",
   }),
 )
-
-import { API_VERSIONS } from "../lib/api-versions"
-
-// v0 アプリをマウント (/api/v0)
-const routes = app.route(`/${API_VERSIONS.v0}`, v0_final)
 
 export type AppType = typeof routes
 export type ApiV0Type = typeof v0_final

@@ -3,7 +3,7 @@ import { Post } from "@/server/domain/post.entity"
 import type {
   CreatePostInput,
   UpdatePostInput,
-} from "@/server/domain/post.schema"
+} from "@/server/routes/dto/post.schema"
 
 export class PostUseCase {
   constructor(private readonly postRepository: PostRepository) {}

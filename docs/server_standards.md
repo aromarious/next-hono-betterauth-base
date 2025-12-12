@@ -193,22 +193,57 @@ type PostProps = PostCoreType & Partial<Pick<PostType, "id" | ...>>;
 | 種別 | ファイル | 役割 | 備考 |
 | :--- | :--- | :--- | :--- |
 | **Drizzle Schema** | `infrastructure/db/schema.ts` | **DBのテーブル定義** (Source of Truth) | マイグレーションの元となる。アプリケーションロジックからは原則参照しない。 |
-| **Domain Schema** | `domain/*.entity.ts` | **ドメインの完全な型定義** | `PostSchema` (Full), `PostCoreSchema`。Entityの実装と密結合。 |
-| **Validation Schema** | `domain/*.schema.ts` | **API入力バリデーション用** | `create/update` 等のユースケースごとのスキーマ定義。EntityのSchemaをimport/exportして使用する。 |
+| **Domain Schema** | `domain/*.entity.ts` | **ドメインの完全な型定義** | `PostSchema` (Full), `PostCoreSchema`。Entityの実装と密結合。内部では `Date` 型を使用。 |
+| **DTO Schema** | `routes/dto/*.schema.ts` | **API境界での型定義** | `CreatePostSchema`, `UpdatePostSchema`, `PostResponseSchema`。HTTP境界での型変換ルールを定義。 |
 
-### 実装例: `domain/*.schema.ts`
+### DTO Schema の配置理由
 
-Controller (Routes) からEntity定義を直接参照するのを防ぐため、バリデーション用スキーマはこのファイル経由で公開します。
+`CreatePostSchema`, `UpdatePostSchema`, `PostResponseSchema` などは、全て**プレゼンテーション層の責務**です。理由:
+
+1. **HTTP境界での型変換を担う**: ドメイン層では `Date` 型で扱うフィールドも、JSON では文字列として表現する必要があります。
+2. **外界からの INPUT/OUTPUT 契約**: API仕様として、クライアントとの契約を定義します。
+3. **ドメインとは異なる関心事**: 将来、日時フィールドがユーザー入力に含まれる場合、`CreatePostSchema` も `z.string().datetime()` による変換が必要になります。
+
+```typescript
+// domain/post.entity.ts (ドメイン層)
+export const PostSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  publishAt: z.date(),  // ドメイン内では Date オブジェクト
+})
+
+// routes/dto/post.schema.ts (プレゼンテーション層)
+export const CreatePostSchema = z.object({
+  title: z.string(),
+  publishAt: z.string().datetime(),  // JSON では文字列
+})
+```
+
+### 実装例: `routes/dto/*.schema.ts`
 
 ```typescript
 import { z } from "zod"
-import { PostCoreSchema } from "./post.entity"
+import { PostCoreSchema, PostSchema } from "@/server/domain/post.entity"
 
-// Entity定義を再エクスポート
-export { PostCoreSchema }
+// ドメインスキーマを再エクスポート（必要に応じて）
+export { PostCoreSchema, PostSchema }
 
-// ユースケース固有の派生 (CreateはCoreと等価、UpdateはPartial)
+// API レスポンス用スキーマ (Date → string への変換)
+export const PostResponseSchema = PostSchema.omit({
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+})
+
+// API リクエスト用スキーマ
+export const CreatePostSchema = PostCoreSchema
 export const UpdatePostSchema = PostCoreSchema.partial()
+
+// 型エクスポート
+export type CreatePostInput = z.infer<typeof CreatePostSchema>
+export type UpdatePostInput = z.infer<typeof UpdatePostSchema>
 ```
 
 ## 7. リポジトリ実装標準
@@ -255,3 +290,68 @@ export type NewPost = typeof PostTable.$inferInsert
   }
 )
 ```
+
+## 10. DTO マッパーパターン
+
+ドメインエンティティ (`Post` など) をAPIレスポンス形式に変換する処理は、**プレゼンテーション層の責務**です。エンティティのメソッド (`toResponse()` など) として実装するのではなく、専用のマッパー関数として `routes/dto/` に配置します。
+
+### 配置場所
+
+```text
+routes/dto/
+├── post.schema.ts   # DTOスキーマ定義
+└── post.mapper.ts   # DTO変換関数
+```
+
+### 実装例: `routes/dto/*.mapper.ts`
+
+```typescript
+import type { Post } from "@/server/domain/post.entity"
+
+/**
+ * Convert Post entity to API response format
+ * Transforms Date objects to ISO string format
+ */
+export function toPostResponse(post: Post) {
+  if (!post.id || !post.createdAt || !post.updatedAt) {
+    throw new Error("Cannot convert unpersisted Post to response format")
+  }
+  
+  return {
+    id: post.id,
+    title: post.title,
+    content: post.content,
+    createdAt: post.createdAt.toISOString(),
+    updatedAt: post.updatedAt.toISOString(),
+  }
+}
+```
+
+### 使用例: `routes/*.ts`
+
+```typescript
+import { toPostResponse } from "./dto/post.mapper"
+
+export const configurePostsRoutes = <E extends Env, S extends {}, P extends string>(
+  app: OpenAPIHono<E, S, P>
+) => {
+  return app
+    .openapi(getPostRoute, async (c) => {
+      const post = await postRepository.findById(id)
+      if (!post) {
+        return c.json({ error: "Post not found" }, 404)
+      }
+      return c.json(toPostResponse(post))
+    })
+    .openapi(listPostsRoute, async (c) => {
+      const allPosts = await postRepository.findAll()
+      return c.json(allPosts.map((p) => toPostResponse(p)))
+    })
+}
+```
+
+### なぜエンティティメソッドではないのか？
+
+- **関心の分離**: ドメインエンティティは HTTP や JSON 形式を知る必要がありません。
+- **単一責任の原則**: エンティティの責務はビジネスロジックの表現であり、API レスポンス形式への変換ではありません。
+- **テスト容易性**: マッパー関数は純粋関数として独立してテストできます。
