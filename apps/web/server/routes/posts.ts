@@ -70,7 +70,7 @@ const handlers = {
       return c.json({ error: "Post not found" }, 404)
     }
 
-    return c.json(deletedPost.toJSON())
+    return c.body(null, 204)
   }),
 }
 

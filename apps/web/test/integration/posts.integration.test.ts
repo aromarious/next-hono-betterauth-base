@@ -11,7 +11,7 @@ describe("Posts API Integration Test", () => {
   })
 
   describe("Post API", () => {
-    it("投稿を作成し、それを取得できるべき", async () => {
+    it("投稿を作成し、取得、更新、削除できるべき", async () => {
       // 1. Create a post
       const createPayload = {
         title: "Integration Title",
@@ -40,6 +40,47 @@ describe("Posts API Integration Test", () => {
       expect(getRes.status).toBe(200)
       const single = await getRes.json()
       expect(single.id).toBe(created.id)
+      expect(single.title).toBe(createPayload.title)
+      expect(single.content).toBe(createPayload.content)
+
+      // 4. Update a post
+      const updatePayload = {
+        title: "Updated Title",
+        content: "Updated Content via API",
+      }
+      const updateRes = await app.request(`/api/posts/${created.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatePayload),
+      })
+      expect(updateRes.status).toBe(200)
+      const updated = await updateRes.json()
+      expect(updated.id).toBe(created.id)
+      expect(updated.title).toBe(updatePayload.title)
+      expect(updated.content).toBe(updatePayload.content)
+
+      // Verify the update by retrieving again
+      const getUpdatedRes = await app.request(`/api/posts/${created.id}`)
+      expect(getUpdatedRes.status).toBe(200)
+      const verifiedUpdated = await getUpdatedRes.json()
+      expect(verifiedUpdated.title).toBe(updatePayload.title)
+      expect(verifiedUpdated.content).toBe(updatePayload.content)
+
+      // 5. Delete a post
+      const deleteRes = await app.request(`/api/posts/${created.id}`, {
+        method: "DELETE",
+      })
+      expect(deleteRes.status).toBe(204)
+
+      // Verify deletion by attempting to retrieve
+      const getDeletedRes = await app.request(`/api/posts/${created.id}`)
+      expect(getDeletedRes.status).toBe(404)
+
+      // Verify list is empty
+      const listAfterDeleteRes = await app.request("/api/posts")
+      expect(listAfterDeleteRes.status).toBe(200)
+      const listAfterDelete = await listAfterDeleteRes.json()
+      expect(listAfterDelete).toHaveLength(0)
     })
 
     it("存在しない投稿に対して 404 を返すべき", async () => {
