@@ -575,3 +575,4 @@ blob-report/
 playwright/.cache/
 
 *.session.sql
+apps/web/next-env.d.ts

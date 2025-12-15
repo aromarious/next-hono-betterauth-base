@@ -120,11 +120,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Infisical CLI
+        if: github.actor != 'dependabot[bot]'
         run: |
           curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.deb.sh' | sudo -E bash
           sudo apt-get update && sudo apt-get install -y infisical
 
       - name: Run DB Migrations
+        if: github.actor != 'dependabot[bot]'
         env:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_SECRET }}
         run: |
@@ -141,6 +143,7 @@ jobs:
         run: node .github/scripts/coverage-summary.js apps/web/coverage/coverage-summary.json "Unit Test Coverage"
 
       - name: Run Integration Tests
+        if: github.actor != 'dependabot[bot]'
         env:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_SECRET }}
         run: |
@@ -148,7 +151,7 @@ jobs:
           infisical run --env=staging -- pnpm test:int:coverage --coverage.reporter=text --coverage.reporter=json-summary
 
       - name: Publish Integration Test Coverage
-        if: always()
+        if: github.actor != 'dependabot[bot]' && always()
         run: node .github/scripts/coverage-summary.js apps/web/coverage/coverage-summary.json "Integration Test Coverage"
 
       - name: Upload Unit Test Coverage
@@ -161,7 +164,7 @@ jobs:
 
       - name: Upload Integration Test Coverage
         uses: actions/upload-artifact@v4
-        if: always()
+        if: github.actor != 'dependabot[bot]' && always()
         with:
           name: integration-test-coverage
           path: apps/web/coverage/
@@ -170,6 +173,7 @@ jobs:
   e2e:
     name: E2E Tests
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
 
     services:
       postgres:
@@ -223,7 +227,7 @@ jobs:
           pnpm test:e2e
 
       - name: Upload Playwright Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: playwright-report

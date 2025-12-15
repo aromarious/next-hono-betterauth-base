@@ -1,7 +1,7 @@
-import sharedConfig from "@packages/ui/tailwind.config"
-import type { Config } from "tailwindcss"
+const sharedConfig = require("@packages/ui/tailwind.config")
 
-const config: Config = {
+/** @type {import('tailwindcss').Config} */
+module.exports = {
   ...sharedConfig,
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
@@ -10,4 +10,3 @@ const config: Config = {
     "../../packages/ui/src/**/*.{ts,tsx}",
   ],
 }
-export default config

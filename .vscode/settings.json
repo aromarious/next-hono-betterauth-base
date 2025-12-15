@@ -4,6 +4,7 @@
     "MD025": false,
     "MD028": false
   },
+  "css.lint.unknownAtRules": "ignore",
   "sqltools.connections": [
     {
       "ssh": "Disabled",

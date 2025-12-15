@@ -7,14 +7,15 @@ catalog:
   "@types/react": ^19.0.1
   "@types/react-dom": ^19.0.2
   "@biomejs/biome": ^2.3.8
-  '@types/node': ^20.11.24
+  '@types/node': ^25.0.2
   typescript: ^5.3.3
-  tailwindcss: ^3.4.1
-  postcss: ^8.4.38
-  autoprefixer: ^10.4.19
-  vitest: ^1.2.1
+  tailwindcss: ^4.1.18
+  "@tailwindcss/postcss": ^4.0.0
+  postcss: ^8.5.6
+  autoprefixer: ^10.4.23
+  vitest: ^4.0.15
   zod: ^4.1.13
-  '@vitejs/plugin-react': ^4.2.1
+  '@vitejs/plugin-react': ^5.1.2
 onlyBuiltDependencies:
   - '@biomejs/biome'
   - es5-ext
