@@ -3,6 +3,9 @@
   "root": false,
   "files": {
     "ignoreUnknown": false,
+    "ignore": [
+      "**/globals.css"
+    ],
     "includes": [
       "**",
       "!**/node_modules",
