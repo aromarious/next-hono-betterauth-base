@@ -20,7 +20,7 @@ export default defineConfig(() => {
       setupFiles: ["./test/load-env.ts"],
       coverage: {
         provider: "v8" as "v8",
-        reporter: ["text", "json", "html"],
+        reporter: ["text", "json", "html", "json-summary"],
       },
     },
   }

@@ -134,14 +134,22 @@ jobs:
       - name: Run Unit Tests
         run: |
           cd apps/web
-          pnpm test:unit --coverage
+          pnpm test:unit --coverage --coverage.reporter=text --coverage.reporter=json-summary
+
+      - name: Publish Unit Test Coverage
+        if: always()
+        run: node .github/scripts/coverage-summary.js apps/web/coverage/coverage-summary.json "Unit Test Coverage"
 
       - name: Run Integration Tests
         env:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_SECRET }}
         run: |
           cd apps/web
-          infisical run --env=staging -- pnpm test:int:coverage
+          infisical run --env=staging -- pnpm test:int:coverage --coverage.reporter=text --coverage.reporter=json-summary
+
+      - name: Publish Integration Test Coverage
+        if: always()
+        run: node .github/scripts/coverage-summary.js apps/web/coverage/coverage-summary.json "Integration Test Coverage"
 
       - name: Upload Unit Test Coverage
         uses: actions/upload-artifact@v4
