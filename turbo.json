@@ -39,6 +39,10 @@
     "test:int": {
       "dependsOn": ["^build"],
       "inputs": ["src/**", "test/**"]
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "inputs": ["src/**", "**/*.ts", "**/*.tsx", "tsconfig.json"]
     }
   }
 }

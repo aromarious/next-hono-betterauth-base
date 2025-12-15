@@ -9,6 +9,7 @@
     "dev:e2e:ratelimit": "NEXT_E2E=true DISABLE_RATE_LIMIT=false infisical run --env=staging -- next dev -p 3001",
     "build": "SKIP_ENV_VALIDATION=true next build",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
     "test": "pnpm test:unit && pnpm test:int",
     "test:unit": "vitest -c vitest.config.ts --run",
     "test:int": "infisical run --env=staging -- vitest -c vitest.integration.config.ts --run",

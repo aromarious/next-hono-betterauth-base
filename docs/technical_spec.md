@@ -138,11 +138,21 @@ pnpm dev
 * **CI**: GitHub Actions を使用して、以下の環境で自動テストを実行します:
   * **Service Container**: PostgreSQL 16 (ポート 5433)
   * **Infisical CLI**: `staging` 環境から環境変数を動的に取得
-  * **実行テスト**:
-    * **PR時**: 単体テスト (`pnpm test:unit`) と統合テスト (`pnpm test:int`)
-    * **main push時**: 上記に加えて E2Eテスト (`pnpm test:e2e`) も実行
+  * **実行ジョブ**:
+    * **Lint & Format**: Biomeによるコード品質チェック
+    * **TypeScript Check**: 型安全性の検証
+    * **Build**: アプリケーションのビルド
+    * **Test**: 単体テスト・統合テスト（カバレッジレポート付き）
+    * **E2E**: E2Eテスト（main pushのみ）
+  * **実行タイミング**:
+    * **PR時**: Lint、型チェック、ビルド、単体テスト、統合テスト
+    * **main push時**: 上記に加えてE2Eテストも実行
+  * **レポート**:
+    * カバレッジレポート（Unit、Integration）
+    * Playwrightレポート（E2E）
   * **ワークフロー**: `.github/workflows/test.yml` (PR用)、`.github/workflows/full-test.yml` (main用)
   * 統合テストとE2EテストはService ContainerのDBを使用して動作検証を行います。
+  * **依存関係管理**: Dependabotによる自動更新（npm週次、GitHub Actions月次、Docker月次）
 
 #### E2Eテストの環境変数管理
 

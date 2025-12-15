@@ -127,7 +127,15 @@ pnpm biome check --apply
 
 ## CI/CD
 
-このプロジェクトはGitHub Actionsを使用してCIを実行します。
+このプロジェクトはGitHub Actionsを使用してCIを実行します。詳細は [CI/CDガイドライン](docs/ci_guideline.md) を参照してください。
+
+### 実行される自動チェック
+
+- **Lint & Format**: Biomeによるコード品質チェック
+- **TypeScript Check**: 型安全性の検証
+- **Build**: Next.jsアプリケーションのビルド
+- **Unit & Integration Tests**: テスト実行（カバレッジレポート付き）
+- **E2E Tests**: E2Eテスト（mainブランチのみ）
 
 ### GitHub Secretsの設定
 
@@ -158,15 +166,26 @@ CIでInfisical CLIを使用するため、以下のシークレットをGitHub�
 ### ワークフロー
 
 - **`.github/workflows/test.yml`**: プルリクエスト時に実行
-  - Lint、ビルド、単体テスト、統合テストを実行
+  - Lint、型チェック、ビルド、単体テスト、統合テストを実行
 - **`.github/workflows/full-test.yml`**: mainブランチへのpush時に実行
   - 上記に加えてE2Eテストも実行
 
-### テストの実行
+### 依存関係の自動更新
+
+Dependabotが依存関係を自動的にチェックし、更新PRを作成します：
+
+- npm パッケージ: 週次
+- GitHub Actions: 月次
+- Docker イメージ: 月次
+
+### ローカルでのCI検証
+
+ローカルで全てのCIチェックを実行する方法は [CI/CDガイドライン](docs/ci_guideline.md#ローカルでのci検証) を参照してください。
 
 ## ドキュメント
 
 - [技術仕様書](docs/technical_spec.md): 技術選定、アーキテクチャの詳細
+- [CI/CDガイドライン](docs/ci_guideline.md): CI/CD環境の説明とトラブルシューティング
 
 ## ライセンス
 
