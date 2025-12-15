@@ -1,7 +1,8 @@
 {
   "markdownlint.config": {
     "MD033": false,
-    "MD025": false
+    "MD025": false,
+    "MD028": false
   },
   "sqltools.connections": [
     {

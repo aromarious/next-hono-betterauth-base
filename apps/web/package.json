@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "dev:e2e": "NEXT_E2E=true infisical run --env=staging -- next dev -p 3001",
+    "dev:e2e:ratelimit": "NEXT_E2E=true DISABLE_RATE_LIMIT=false infisical run --env=staging -- next dev -p 3001",
     "build": "SKIP_ENV_VALIDATION=true next build",
     "lint": "next lint",
     "test": "pnpm test:unit && pnpm test:int",
@@ -12,7 +14,8 @@
     "test:int": "infisical run --env=staging -- vitest -c vitest.integration.config.ts --run",
     "test:coverage": "vitest run --coverage",
     "test:int:coverage": "infisical run --env=staging -- vitest -c vitest.integration.config.ts --run --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:ratelimit": "playwright test e2e/api/ratelimit.spec.ts"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^8.2.0",
