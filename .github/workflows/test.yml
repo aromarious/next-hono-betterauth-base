@@ -94,7 +94,7 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: webapp_test
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -131,7 +131,7 @@ jobs:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_SECRET }}
         run: |
           cd apps/web
-          infisical run --env=staging -- pnpm drizzle-kit push
+          infisical run --projectId=e4ef8bb9-b6f8-46e7-ae59-684ae921781d --env=staging -- pnpm drizzle-kit push
 
       - name: Run Unit Tests
         run: |
@@ -148,7 +148,7 @@ jobs:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_SECRET }}
         run: |
           cd apps/web
-          infisical run --env=staging -- pnpm test:int:coverage --coverage.reporter=text --coverage.reporter=json-summary
+          infisical run --projectId=e4ef8bb9-b6f8-46e7-ae59-684ae921781d --env=staging -- pnpm test:int:coverage --coverage.reporter=text --coverage.reporter=json-summary
 
       - name: Publish Integration Test Coverage
         if: github.actor != 'dependabot[bot]' && always()

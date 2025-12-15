@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:e2e": "NEXT_E2E=true infisical run --env=staging -- next dev -p 3001",
+    "dev:e2e:ci": "NEXT_E2E=true next dev -p 3001",
     "dev:e2e:ratelimit": "NEXT_E2E=true DISABLE_RATE_LIMIT=false infisical run --env=staging -- next dev -p 3001",
     "build": "SKIP_ENV_VALIDATION=true next build",
     "lint": "biome check .",
@@ -25,7 +26,7 @@
     "@hono/zod-validator": "^0.7.5",
     "@packages/ui": "workspace:*",
     "@scalar/hono-api-reference": "^0.9.28",
-    "@t3-oss/env-nextjs": "^0.13.8",
+    "@t3-oss/env-nextjs": "^0.13.10",
     "@upstash/ratelimit": "^2.0.7",
     "@upstash/redis": "^1.35.7",
     "drizzle-orm": "^0.45.1",

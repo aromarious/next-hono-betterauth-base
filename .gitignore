@@ -576,3 +576,4 @@ playwright/.cache/
 
 *.session.sql
 apps/web/next-env.d.ts
+*log*.txt
