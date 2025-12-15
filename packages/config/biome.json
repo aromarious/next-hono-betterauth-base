@@ -3,7 +3,13 @@
   "root": false,
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!**/node_modules", "!**/.next", "!**/dist", "!**/out"]
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/.next",
+      "!**/dist",
+      "!**/out"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -23,7 +29,12 @@
       "tailwindDirectives": true
     },
     "linter": {
-      "enabled": true
+      "enabled": true,
+      "rules": {
+        "suspicious": {
+          "noUnknownAtRules": "off"
+        }
+      }
     }
   },
   "javascript": {
