@@ -135,7 +135,14 @@ pnpm dev
   * 統合テストは `infisical` (Environment: **staging**) 経由で `DATABASE_URL` (Port 5433) を取得して接続します。
   * E2Eテストも `infisical` (Environment: **staging**) 経由で環境変数を取得し、ポート **3001** で専用サーバーを起動します。
   * **Test DB Connection**: `postgresql://postgres:postgres@localhost:5433/webapp_test`
-* **CI**: GitHub Actions等のService Container機能でPostgreSQLを起動し、**単体テストと統合テストの両方を実行します** (`pnpm test`)。統合テストはService ContainerのDBを使用して動作検証を行います。
+* **CI**: GitHub Actions を使用して、以下の環境で自動テストを実行します:
+  * **Service Container**: PostgreSQL 16 (ポート 5433)
+  * **Infisical CLI**: `staging` 環境から環境変数を動的に取得
+  * **実行テスト**:
+    * **PR時**: 単体テスト (`pnpm test:unit`) と統合テスト (`pnpm test:int`)
+    * **main push時**: 上記に加えて E2Eテスト (`pnpm test:e2e`) も実行
+  * **ワークフロー**: `.github/workflows/test.yml` (PR用)、`.github/workflows/full-test.yml` (main用)
+  * 統合テストとE2EテストはService ContainerのDBを使用して動作検証を行います。
 
 #### E2Eテストの環境変数管理
 
@@ -393,8 +400,11 @@ API全体にレートリミット機能を導入し、DoS攻撃の防止、コ�
 > **Upstash Redisは全環境で同じインスタンスを共有**しています。開発環境では`RATE_LIMIT_MAX_REQUESTS=100`と緩い制限を設定し、テスト・本番環境では`10`に設定しています。
 
 > [!NOTE]
-> **実装状況 (2025/12/09現在)**
+> **実装状況 (2025/12/15現在)**
 >
 > * **Development**: 導入完了 (v0.0.0で対応)
-> * **CI / Testing**: 未導入 (CI環境構築時に設定予定)
+> * **CI / Testing**: 導入完了
+>   * **GitHub Actions**: `.github/workflows/test.yml` (PR用)、`.github/workflows/full-test.yml` (main push用)
+>   * **PR時**: Lint、ビルド、単体テスト、統合テストを実行
+>   * **main push時**: 上記に加えてE2Eテストも実行
 > * **Production**: 未導入 (デプロイ環境構築時に設定予定)

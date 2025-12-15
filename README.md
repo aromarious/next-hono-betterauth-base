@@ -125,6 +125,45 @@ Biome を使用しています。コミット時に自動的にフォーマッ�
 pnpm biome check --apply
 ```
 
+## CI/CD
+
+このプロジェクトはGitHub Actionsを使用してCIを実行します。
+
+### GitHub Secretsの設定
+
+CIでInfisical CLIを使用するため、以下のシークレットをGitHubリポジトリに設定する必要があります：
+
+1. GitHubリポジトリの **Settings** > **Secrets and variables** > **Actions** に移動
+2. **New repository secret** をクリックして以下を追加：
+   - Name: `INFISICAL_SECRET`
+   - Value: 上記で作成したService Token（`st.`で始まる長い文字列全体をコピー）
+
+**Infisical Service Tokenの作成方法**:
+
+1. [Infisicalダッシュボード](https://app.infisical.com/)にログイン
+2. プロジェクト「webservice-next-hono-base」を選択
+3. 上部の **Settings** タブをクリック
+4. **Project Settings** を選択
+5. **Access Control** タブをクリック
+6. **Service Tokens** セクションで **Create service token** をクリック
+7. 設定：
+   - **Service Token Name**: `GitHub Actions CI`
+   - **Environment**: `staging`
+   - **Secrets Path**: `/` (デフォルトのまま)
+   - **Expiration**: 無期限（Never expire）または十分に長い期間
+   - **Permissions**: `Read` ✅
+8. **Create** ボタンをクリック
+9. 表示される `st.`で始まる長い文字列（Service Token）を**必ずコピーして保存**（この画面は一度しか表示されません）
+
+### ワークフロー
+
+- **`.github/workflows/test.yml`**: プルリクエスト時に実行
+  - Lint、ビルド、単体テスト、統合テストを実行
+- **`.github/workflows/full-test.yml`**: mainブランチへのpush時に実行
+  - 上記に加えてE2Eテストも実行
+
+### テストの実行
+
 ## ドキュメント
 
 - [技術仕様書](docs/technical_spec.md): 技術選定、アーキテクチャの詳細
