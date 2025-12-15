@@ -1,14 +1,5 @@
 {
   "extends": [
     "./packages/config/biome.json"
-  ],
-  "css": {
-    "linter": {
-      "rules": {
-        "suspicious": {
-          "noUnknownAtRules": "off"
-        }
-      }
-    }
-  }
+  ]
 }
