@@ -1,9 +1,25 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
   "root": false,
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!**/node_modules", "!**/.next", "!**/dist", "!**/out"]
+    "includes": [
+      "**",
+      "!!**/node_modules",
+      "!!node_modules",
+      "!**/.next",
+      "!**/dist",
+      "!**/out",
+      "!**/.turbo",
+      "!**/globals.css",
+      "!**/*.test.ts",
+      "!**/*.spec.ts"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -16,17 +32,20 @@
       "recommended": true
     }
   },
-  "javascript": {
-    "formatter": {
-      "quoteStyle": "double",
-      "semicolons": "asNeeded"
-    }
-  },
   "css": {
     "parser": {
       "cssModules": true,
       "allowWrongLineComments": false,
       "tailwindDirectives": true
+    },
+    "linter": {
+      "enabled": true
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "asNeeded"
     }
   }
 }

@@ -133,8 +133,56 @@ pnpm dev
 
 * **Local**: `docker compose up` でDB(Port:5432)およびTest DB(Port:5433)が起動している状態でテストを実行する。
   * 統合テストは `infisical` (Environment: **staging**) 経由で `DATABASE_URL` (Port 5433) を取得して接続します。
+  * E2Eテストも `infisical` (Environment: **staging**) 経由で環境変数を取得し、ポート **3001** で専用サーバーを起動します。
   * **Test DB Connection**: `postgresql://postgres:postgres@localhost:5433/webapp_test`
-* **CI**: GitHub Actions等のService Container機能でPostgreSQLを起動し、**単体テストと統合テストの両方を実行します** (`pnpm test`)。統合テストはService ContainerのDBを使用して動作検証を行います。
+* **CI**: GitHub Actions を使用して、以下の環境で自動テストを実行します:
+  * **Service Container**: PostgreSQL 16 (ポート 5433)
+  * **Infisical CLI**: `staging` 環境から環境変数を動的に取得
+  * **実行ジョブ**:
+    * **Lint & Format**: Biomeによるコード品質チェック
+    * **TypeScript Check**: 型安全性の検証
+    * **Build**: アプリケーションのビルド
+    * **Test**: 単体テスト・統合テスト（カバレッジレポート付き）
+    * **E2E**: E2Eテスト（main pushのみ）
+  * **実行タイミング**:
+    * **PR時**: Lint、型チェック、ビルド、単体テスト、統合テスト
+    * **main push時**: 上記に加えてE2Eテストも実行
+  * **レポート**:
+    * カバレッジレポート（Unit、Integration）
+    * Playwrightレポート（E2E）
+  * **ワークフロー**: `.github/workflows/test.yml` (PR用)、`.github/workflows/full-test.yml` (main用)
+  * 統合テストとE2EテストはService ContainerのDBを使用して動作検証を行います。
+  * **依存関係管理**: Dependabotによる自動更新（npm週次、GitHub Actions月次、Docker月次）
+
+#### E2Eテストの環境変数管理
+
+E2Eテストでは、統合テストと同様に **Infisical `staging` 環境** から環境変数を取得しますが、実装方式が異なります。
+
+| 項目 | 統合テスト | E2Eテスト |
+| :--- | :--- | :--- |
+| **ツール** | Vitest | Playwright |
+| **環境変数注入** | Ephemeral .env方式<br>（一時的に.envファイルを生成・削除） | Infisical CLI直接実行<br>（`webServer.command`で直接実行） |
+| **理由** | VS Code Vitest拡張機能との互換性 | Playwright拡張機能の制約なし |
+| **ポート** | サーバー起動なし（`app.request()`使用） | **3001** |
+
+**E2EテストでEphemeral .envが不要な理由**:
+
+* Playwright拡張機能は環境変数読み込みの制約がない
+* `playwright.config.ts`の`webServer.command`で直接`infisical run`を実行できる
+* シンプルな構成で十分
+
+**開発ワークフロー**:
+
+```bash
+# パターン1: Playwrightに自動起動を任せる
+$ pnpm dev        # 開発サーバー（ポート3000）
+$ pnpm test:e2e   # E2Eサーバーを自動起動（ポート3001） → テスト実行
+
+# パターン2: 事前にE2E用サーバーを起動
+$ pnpm dev        # ターミナル1: 開発サーバー（ポート3000）
+$ pnpm dev:e2e    # ターミナル2: E2E用サーバー（ポート3001）
+$ pnpm test:e2e   # ターミナル3: 既存サーバーを再利用してテスト実行
+```
 
 ## 4. アーキテクチャとディレクトリ構成
 
@@ -222,6 +270,27 @@ DBロジック（スキーマやクライアント）も `infrastructure/db` に
 | **CI / Testing** | **Infisical CLI** | GitHub Actions などの CI/CD パイプライン内で CLI を使用し、テスト実行に必要なシークレットを動的に取得します。 |
 | **Production** | **Integration (Sync)** | **Infisical Integrations** 機能を使用し、Infisical からデプロイ先プラットフォーム（Vercel, AWS Parameter Store, Render 等）の環境変数ストアへ自動同期します。アプリケーションは標準の `process.env` を通じて値を参照するため、Infisical API の稼働状況に影響されません。 |
 
+### Vercel Integration設定
+
+本プロジェクトでは、**Infisical Vercel Integration**を使用してVercelの環境変数を自動同期しています。
+
+**設定内容**:
+
+* **Infisical環境**: `prod` (本番)
+* **同期先Vercel環境**: `Production` および `Preview`
+* **同期方法**: Infisical上での環境変数変更が、Vercelの該当環境に自動的に反映されます
+
+**手順**:
+
+1. Infisicalダッシュボードで「Integrations」→「Vercel」を選択
+2. Vercelアカウントを接続
+3. 同期元：`prod` 環境を選択
+4. 同期先：Vercelの`Production`と`Preview`環境を選択
+5. 必要な環境変数（`DATABASE_URL`, `UPSTASH_REDIS_REST_URL`など）が自動的に同期されます
+
+> [!NOTE]
+> Vercelの`Development`環境はローカル開発用のため、同期対象外としています。ローカル開発、統合テスト、E2EテストではInfisical CLIを直接使用します（`dev`環境、`staging`環境）。
+
 ### 必要なツール
 
 * **Infisical CLI**: ローカル開発および CI で必要です。
@@ -250,7 +319,7 @@ Fail-fastな開発とキャッシュ事故防止のため、以下のルール�
 2. **キャッシュ設定 (Turbo)**:
     * 環境変数の値が変わった際にキャッシュが無効化されるよう、`turbo.json` の `globalEnv`/`env` を適切に設定します。
 
-## 7. レートリミット (Rate Limiting)
+## 7. レートリミット (Rate Limiting)s
 
 API全体にレートリミット機能を導入し、DoS攻撃の防止、コスト削減、公平なリソース配分を実現します。
 
@@ -327,9 +396,25 @@ API全体にレートリミット機能を導入し、DoS攻撃の防止、コ�
 | `RATE_LIMIT_WINDOW` | No | レート制限のウィンドウ時間 (デフォルト: `1 m`) | `apps/web/middleware.ts` |
 | `CI` | No | CI環境フラグ (CI環境のみ) | `apps/web/playwright.config.ts` |
 
+### Infisical環境別設定
+
+| 環境変数 | `dev` (開発) | `staging` (テスト) | `prod` (本番) |
+| :--- | :--- | :--- | :--- |
+| `DATABASE_URL` | ローカル5432 | ローカル5433 | Neon (クラウド) |
+| `UPSTASH_REDIS_REST_URL` | Upstash本番DB | Upstash本番DB | Upstash本番DB |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash本番DB | Upstash本番DB | Upstash本番DB |
+| `RATE_LIMIT_MAX_REQUESTS` | 100 | 10 | 10 |
+| `RATE_LIMIT_WINDOW` | `1 m` | `1 m` | `1 m` |
+
 > [!NOTE]
-> **実装状況 (2025/12/09現在)**
+> **Upstash Redisは全環境で同じインスタンスを共有**しています。開発環境では`RATE_LIMIT_MAX_REQUESTS=100`と緩い制限を設定し、テスト・本番環境では`10`に設定しています。
+
+> [!NOTE]
+> **実装状況 (2025/12/15現在)**
 >
 > * **Development**: 導入完了 (v0.0.0で対応)
-> * **CI / Testing**: 未導入 (CI環境構築時に設定予定)
+> * **CI / Testing**: 導入完了
+>   * **GitHub Actions**: `.github/workflows/test.yml` (PR用)、`.github/workflows/full-test.yml` (main push用)
+>   * **PR時**: Lint、ビルド、単体テスト、統合テストを実行
+>   * **main push時**: 上記に加えてE2Eテストも実行
 > * **Production**: 未導入 (デプロイ環境構築時に設定予定)
