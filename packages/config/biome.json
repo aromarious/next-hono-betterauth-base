@@ -29,12 +29,7 @@
       "tailwindDirectives": true
     },
     "linter": {
-      "enabled": true,
-      "rules": {
-        "suspicious": {
-          "noUnknownAtRules": "off"
-        }
-      }
+      "enabled": true
     }
   },
   "javascript": {
