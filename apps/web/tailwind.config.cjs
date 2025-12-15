@@ -1,3 +1,4 @@
+"use strict"
 const sharedConfig = require("@packages/ui/tailwind.config")
 
 /** @type {import('tailwindcss').Config} */

@@ -12,6 +12,5 @@ const baseUrl =
 
 export const client = hc<AppType>(baseUrl)
 
-export const createClient = (version: ApiVersion = LATEST_API_VERSION) => {
-  return hc<ApiV0Type>(`${baseUrl}/api/${version}`)
-}
+export const createClient = (version: ApiVersion = LATEST_API_VERSION) =>
+  hc<ApiV0Type>(`${baseUrl}/api/${version}`)

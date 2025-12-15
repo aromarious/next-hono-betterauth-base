@@ -133,8 +133,8 @@ export const configurePostsRoutes = <
   P extends string,
 >(
   app: OpenAPIHono<E, S, P>,
-) => {
-  return app
+) =>
+  app
     .openapi(listPostsRoute, async (c) => {
       const allPosts = await postRepository.findAll()
       return c.json(allPosts.map((p) => toPostResponse(p)))
@@ -181,4 +181,3 @@ export const configurePostsRoutes = <
 
       return c.body(null, 204)
     })
-}

@@ -5,7 +5,7 @@ import type { Post } from "@/server/domain/post.entity"
  * Transforms Date objects to ISO string format
  */
 export function toPostResponse(post: Post) {
-  if (!post.id || !post.createdAt || !post.updatedAt) {
+  if (!(post.id && post.createdAt && post.updatedAt)) {
     throw new Error("Cannot convert unpersisted Post to response format")
   }
 

@@ -13,7 +13,7 @@ export default defineConfig({
     include: ["**/*.test.ts", "**/*.test.tsx"],
     exclude: ["**/*.integration.test.ts", "node_modules", ".next"],
     coverage: {
-      provider: "v8" as "v8",
+      provider: "v8" as const,
       reporter: ["text", "json", "html"],
       exclude: [
         "**/*.integration.test.ts",

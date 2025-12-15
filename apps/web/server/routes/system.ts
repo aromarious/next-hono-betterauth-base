@@ -64,11 +64,7 @@ export const configureHealthRoute = <
   P extends string,
 >(
   app: OpenAPIHono<E, S, P>,
-) => {
-  return app.openapi(healthRoute, (c) => {
-    return c.json({ status: "ok" })
-  })
-}
+) => app.openapi(healthRoute, (c) => c.json({ status: "ok" }))
 
 export const configureHelloRoute = <
   E extends Env,
@@ -76,11 +72,7 @@ export const configureHelloRoute = <
   P extends string,
 >(
   app: OpenAPIHono<E, S, P>,
-) => {
-  return app.openapi(helloRoute, (c) => {
-    return c.json({ message: "Hello from Hono!" })
-  })
-}
+) => app.openapi(helloRoute, (c) => c.json({ message: "Hello from Hono!" }))
 
 // Configure v0 system routes (health + hello)
 export const configureSystemRoutes = <
@@ -89,12 +81,7 @@ export const configureSystemRoutes = <
   P extends string,
 >(
   app: OpenAPIHono<E, S, P>,
-) => {
-  return app
-    .openapi(v0HealthRoute, (c) => {
-      return c.json({ status: "ok" })
-    })
-    .openapi(helloRoute, (c) => {
-      return c.json({ message: "Hello from Hono!" })
-    })
-}
+) =>
+  app
+    .openapi(v0HealthRoute, (c) => c.json({ status: "ok" }))
+    .openapi(helloRoute, (c) => c.json({ message: "Hello from Hono!" }))

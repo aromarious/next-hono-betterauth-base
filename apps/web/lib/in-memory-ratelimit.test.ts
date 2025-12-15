@@ -12,7 +12,7 @@ describe("InMemoryRateLimit", () => {
 
   describe("基本機能", () => {
     it("初回リクエストは成功する", async () => {
-      const limiter = new InMemoryRateLimit(3, 60000) // 3 requests per minute
+      const limiter = new InMemoryRateLimit(3, 60_000) // 3 requests per minute
       const result = await limiter.limit("test-ip")
 
       expect(result.success).toBe(true)
@@ -21,7 +21,7 @@ describe("InMemoryRateLimit", () => {
     })
 
     it("制限内では連続リクエストが成功する", async () => {
-      const limiter = new InMemoryRateLimit(3, 60000)
+      const limiter = new InMemoryRateLimit(3, 60_000)
 
       await limiter.limit("test-ip") // 1st
       await limiter.limit("test-ip") // 2nd
@@ -32,7 +32,7 @@ describe("InMemoryRateLimit", () => {
     })
 
     it("制限を超えたリクエストは失敗する", async () => {
-      const limiter = new InMemoryRateLimit(2, 60000)
+      const limiter = new InMemoryRateLimit(2, 60_000)
 
       await limiter.limit("test-ip") // 1st
       await limiter.limit("test-ip") // 2nd
@@ -43,7 +43,7 @@ describe("InMemoryRateLimit", () => {
     })
 
     it("制限超過後も残りカウントは0のまま", async () => {
-      const limiter = new InMemoryRateLimit(2, 60000)
+      const limiter = new InMemoryRateLimit(2, 60_000)
 
       await limiter.limit("test-ip") // 1st
       await limiter.limit("test-ip") // 2nd
@@ -87,18 +87,18 @@ describe("InMemoryRateLimit", () => {
     })
 
     it("resetAtは正しいタイムスタンプを返す", async () => {
-      const limiter = new InMemoryRateLimit(3, 60000)
+      const limiter = new InMemoryRateLimit(3, 60_000)
       const now = Date.now()
 
       const result = await limiter.limit("test-ip")
 
-      expect(result.reset).toBe(now + 60000)
+      expect(result.reset).toBe(now + 60_000)
     })
   })
 
   describe("IP独立性", () => {
     it("異なるIPは独立してカウントされる", async () => {
-      const limiter = new InMemoryRateLimit(1, 60000)
+      const limiter = new InMemoryRateLimit(1, 60_000)
 
       await limiter.limit("ip-1")
       const result1 = await limiter.limit("ip-1") // over limit for ip-1
@@ -109,7 +109,7 @@ describe("InMemoryRateLimit", () => {
     })
 
     it("複数のIPを同時に追跡できる", async () => {
-      const limiter = new InMemoryRateLimit(2, 60000)
+      const limiter = new InMemoryRateLimit(2, 60_000)
 
       await limiter.limit("ip-1") // ip-1: 1st
       await limiter.limit("ip-2") // ip-2: 1st
@@ -124,7 +124,7 @@ describe("InMemoryRateLimit", () => {
 
   describe("エッジケース", () => {
     it("maxRequests=1の場合、2回目のリクエストは失敗する", async () => {
-      const limiter = new InMemoryRateLimit(1, 60000)
+      const limiter = new InMemoryRateLimit(1, 60_000)
 
       const result1 = await limiter.limit("test-ip")
       const result2 = await limiter.limit("test-ip")
@@ -135,7 +135,7 @@ describe("InMemoryRateLimit", () => {
     })
 
     it("空文字列のidentifierでも動作する", async () => {
-      const limiter = new InMemoryRateLimit(2, 60000)
+      const limiter = new InMemoryRateLimit(2, 60_000)
 
       const result1 = await limiter.limit("")
       const result2 = await limiter.limit("")
@@ -154,48 +154,48 @@ describe("parseWindow", () => {
 
   it("秒を正しくパースする", () => {
     expect(parseWindow("1 s")).toBe(1000)
-    expect(parseWindow("30 s")).toBe(30000)
-    expect(parseWindow("60 s")).toBe(60000)
+    expect(parseWindow("30 s")).toBe(30_000)
+    expect(parseWindow("60 s")).toBe(60_000)
   })
 
   it("分を正しくパースする", () => {
-    expect(parseWindow("1 m")).toBe(60000)
-    expect(parseWindow("5 m")).toBe(300000)
-    expect(parseWindow("60 m")).toBe(3600000)
+    expect(parseWindow("1 m")).toBe(60_000)
+    expect(parseWindow("5 m")).toBe(300_000)
+    expect(parseWindow("60 m")).toBe(3_600_000)
   })
 
   it("時間を正しくパースする", () => {
-    expect(parseWindow("1 h")).toBe(3600000)
-    expect(parseWindow("24 h")).toBe(86400000)
+    expect(parseWindow("1 h")).toBe(3_600_000)
+    expect(parseWindow("24 h")).toBe(86_400_000)
   })
 
   it("日を正しくパースする", () => {
-    expect(parseWindow("1 d")).toBe(86400000)
-    expect(parseWindow("7 d")).toBe(604800000)
+    expect(parseWindow("1 d")).toBe(86_400_000)
+    expect(parseWindow("7 d")).toBe(604_800_000)
   })
 
   it("不正な形式はデフォルト値（60000ms）を返す", () => {
-    expect(parseWindow("invalid")).toBe(60000)
-    expect(parseWindow("")).toBe(60000)
-    expect(parseWindow("abc def")).toBe(60000)
+    expect(parseWindow("invalid")).toBe(60_000)
+    expect(parseWindow("")).toBe(60_000)
+    expect(parseWindow("abc def")).toBe(60_000)
   })
 
   it("数値のみの入力はデフォルト値を返す", () => {
-    expect(parseWindow("100")).toBe(60000)
+    expect(parseWindow("100")).toBe(60_000)
   })
 
   it("単位のみの入力はデフォルト値を返す", () => {
-    expect(parseWindow("ms")).toBe(60000)
-    expect(parseWindow("s")).toBe(60000)
+    expect(parseWindow("ms")).toBe(60_000)
+    expect(parseWindow("s")).toBe(60_000)
   })
 
   it("スペースなしの形式も正しくパースする", () => {
-    expect(parseWindow("1m")).toBe(60000)
-    expect(parseWindow("30s")).toBe(30000)
+    expect(parseWindow("1m")).toBe(60_000)
+    expect(parseWindow("30s")).toBe(30_000)
   })
 
   it("複数スペースがあっても正しくパースする", () => {
-    expect(parseWindow("1  m")).toBe(60000)
-    expect(parseWindow("30   s")).toBe(30000)
+    expect(parseWindow("1  m")).toBe(60_000)
+    expect(parseWindow("30   s")).toBe(30_000)
   })
 })

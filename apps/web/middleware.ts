@@ -47,16 +47,14 @@ if (!DISABLE_RATE_LIMIT && UPSTASH_REDIS_REST_URL && UPSTASH_REDIS_REST_TOKEN) {
       parseWindow(RATE_LIMIT_WINDOW),
     )
   }
+} else if (DISABLE_RATE_LIMIT) {
+  console.log(
+    "[Middleware] Rate limiting is disabled (DISABLE_RATE_LIMIT=true)",
+  )
 } else {
-  if (DISABLE_RATE_LIMIT) {
-    console.log(
-      "[Middleware] Rate limiting is disabled (DISABLE_RATE_LIMIT=true)",
-    )
-  } else {
-    console.warn(
-      "[Middleware] Rate limiting is disabled (missing Upstash credentials)",
-    )
-  }
+  console.warn(
+    "[Middleware] Rate limiting is disabled (missing Upstash credentials)",
+  )
 }
 
 export async function middleware(request: NextRequest) {
@@ -68,7 +66,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // レートリミットが無効化されている場合はスキップ
-  if (!ratelimit && !fallbackRateLimit) {
+  if (!(ratelimit || fallbackRateLimit)) {
     return NextResponse.next()
   }
 

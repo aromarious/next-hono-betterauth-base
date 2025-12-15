@@ -65,11 +65,11 @@ export class InMemoryRateLimit {
 // ウィンドウ文字列をミリ秒に変換
 export function parseWindow(window: string): number {
   const match = window.match(/^(\d+)\s*(ms|s|m|h|d)$/)
-  if (!match) return 60000 // デフォルト1分
+  if (!match) return 60_000 // デフォルト1分
 
   const value = match[1]
   const unit = match[2]
-  if (!value || !unit) return 60000
+  if (!(value && unit)) return 60_000
 
   const num = Number.parseInt(value, 10)
 
@@ -85,6 +85,6 @@ export function parseWindow(window: string): number {
     case "d":
       return num * 24 * 60 * 60 * 1000
     default:
-      return 60000
+      return 60_000
   }
 }

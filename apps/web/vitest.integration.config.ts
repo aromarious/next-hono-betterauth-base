@@ -19,7 +19,7 @@ export default defineConfig(() => {
       globalSetup: ["./test/integration-global-setup.ts"],
       setupFiles: ["./test/load-env.ts"],
       coverage: {
-        provider: "v8" as "v8",
+        provider: "v8" as const,
         reporter: ["text", "json", "html", "json-summary"],
       },
     },

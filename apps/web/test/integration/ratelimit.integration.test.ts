@@ -13,7 +13,7 @@ describe("Rate Limit Integration Test", () => {
 
   beforeEach(() => {
     // テスト用のレートリミッターを作成（3リクエスト/分）
-    limiter = new InMemoryRateLimit(3, 60000)
+    limiter = new InMemoryRateLimit(3, 60_000)
   })
 
   describe("レートリミット基本動作", () => {
@@ -125,8 +125,8 @@ describe("Rate Limit Integration Test", () => {
       expect(r2.reset).toBe(r3.reset)
 
       // resetは現在時刻 + 60秒
-      expect(r1.reset).toBeGreaterThanOrEqual(now + 60000)
-      expect(r1.reset).toBeLessThanOrEqual(now + 61000) // 1秒のマージン
+      expect(r1.reset).toBeGreaterThanOrEqual(now + 60_000)
+      expect(r1.reset).toBeLessThanOrEqual(now + 61_000) // 1秒のマージン
     })
   })
 

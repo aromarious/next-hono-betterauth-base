@@ -4,9 +4,7 @@ import app from "@/server"
 export const runtime = "nodejs"
 
 // 汎用ハンドラー: Next.jsのリクエストをHonoに転送
-const handler = async (req: Request) => {
-  return app.fetch(req)
-}
+const handler = async (req: Request) => app.fetch(req)
 
 export const GET = handler
 export const POST = handler
