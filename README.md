@@ -1,204 +1,142 @@
-# Webservice Next Hono Base
+# Next Hono NoAuth Base
 
-モダンなWebサービス開発のためのボイラープレート（Next.js + Hono + Drizzle ORM）
+認証機能なしのモダンなWebアプリケーション開発用テンプレートリポジトリ。Next.js、Hono、Drizzle ORMを使用したフルスタック構成。
+
+## これは何？
+
+このリポジトリは**テンプレートリポジトリ**です。新しいプロジェクトを開始する際に、このテンプレートから新規リポジトリを作成して使用します。
+
+### 特徴
+
+- **モダンなフルスタック構成**: Next.js 16 (App Router) + Hono API
+- **型安全性**: TypeScript + Drizzle ORM
+- **モノレポ構成**: Turborepo で複数パッケージを効率的に管理
+- **開発体験**: Biome (Lint/Format)、Git Hooks、CI/CD標準装備
+- **本番対応**: レート制限、API仕様書自動生成、E2Eテスト
+
+## クイックスタート
+
+### 管理者の方（新規プロジェクト作成）
+
+このテンプレートから新しいリポジトリを作成し、開発チームを招待する手順は以下を参照してください：
+
+👉 **[Admin Setup Guide](docs/admin_setup.md)**
+
+### 開発者の方（既存プロジェクトに参加）
+
+管理者から共有されたリポジトリで開発を開始する手順は以下を参照してください：
+
+👉 **[Quickstart Guide](docs/quickstart.md)**
 
 ## 技術スタック
 
-- **Frontend**: Next.js 16+ (App Router)
-- **Backend**: Hono (Next.js API Routes上で動作)
-- **Database**: PostgreSQL
-- **ORM**: Drizzle ORM
-- **Package Manager**: pnpm
-- **Monorepo**: Turborepo
+### フロントエンド
 
-詳細な技術仕様は [`docs/technical_spec.md`](docs/technical_spec.md) を参照してください。
+- **Next.js 16+** (App Router)
+- **React 19**
+- **Tailwind CSS v4**
 
-## 開発環境のセットアップ
+### バックエンド
 
-### 前提条件
+- **Hono** (Next.js API Routes 上で動作)
+- **Drizzle ORM**
+- **PostgreSQL**
 
-- Node.js 20+
-- pnpm
-- Docker & Docker Compose
+### 開発ツール
 
-### 1. リポジトリのクローン
+- **pnpm** (パッケージマネージャー)
+- **Turborepo** (モノレポ管理)
+- **Biome** (Lint / Format)
+- **Vitest** (単体・統合テスト)
+- **Playwright** (E2Eテスト)
 
-```bash
-git clone <repository-url>
-cd webservice-next-hono-base
-```
+### インフラ
 
-### 2. 依存関係のインストール
+- **Docker Compose** (ローカルDB)
+- **Infisical** (環境変数管理)
+- **GitHub Actions** (CI/CD)
 
-```bash
-pnpm install
-```
-
-### 3. 環境変数の設定 (Infisical)
-
-このプロジェクトは環境変数の管理に **Infisical** を使用します。
-Infisical CLI がインストールされていない場合は、以下の手順でインストールしてください。
-
-#### Infisical CLI のインストール (macOS)
-
-```bash
-brew install infisical/get-infisical/infisical
-```
-
-(その他のOSは [公式ドキュメント](https://infisical.com/docs/cli/overview) を参照)
-
-#### プロジェクトへのログイン
-
-```bash
-infisical login
-infisical init
-```
-
-※ プロジェクトIDの設定などが必要な場合があります。
-
-Infisical のセットアップ方法については [Infisical CLI ドキュメント](https://infisical.com/docs/cli/overview) を参照してください。
-
-### 4. データベースの起動
-
-PostgreSQLをDockerで起動します：
-
-```bash
-pnpm db:up
-```
-
-**その他のDBコマンド**:
-
-```bash
-# データベースの停止
-pnpm db:down
-
-# データベースの再起動
-pnpm db:restart
-
-# データベースのログを表示
-pnpm db:logs
-```
-
-データを完全に削除する場合：
-
-```bash
-docker compose -f packages/config/docker-compose.yml down -v
-```
-
-### 5. アプリケーションの起動
-
-```bash
-pnpm dev
-```
-
-ブラウザで [http://localhost:3000](http://localhost:3000) にアクセスしてください。
+詳細な技術仕様は [技術要件・アーキテクチャ設計書](docs/technical_spec.md) を参照してください。
 
 ## プロジェクト構成
 
 ```text
 .
-├── .devcontainer/        # Dev Container 設定（現在は非推奨）
-├── .husky/               # Git Hooks 設定
 ├── apps/
-│   └── web/              # Next.js (Port 3000)
+│   └── web/                 # Next.js アプリケーション (Port 3000)
+│       ├── src/
+│       │   ├── app/         # App Router ページ
+│       │   ├── server/      # Hono API ルーティング
+│       │   └── env.ts       # 環境変数スキーマ (Zod)
+│       └── tests/           # テスト (unit/integration/e2e)
+│
 ├── packages/
-│   ├── config/           # 共通設定
-│   ├── ui/               # 共通UI
-│   └── db/               # DB設定 (Drizzle ORM)
-└── docs/                 # ドキュメント
+│   ├── db/                  # データベース・ORM設定
+│   │   ├── drizzle/         # Drizzle ORM スキーマ・マイグレーション
+│   │   └── src/             # DB接続・エンティティ
+│   ├── ui/                  # 共通UIコンポーネント
+│   └── config/              # 共通設定ファイル
+│       ├── docker-compose.yml
+│       ├── tailwind/
+│       └── typescript/
+│
+├── docs/                    # ドキュメント
+├── .github/workflows/       # CI/CD定義
+└── .husky/                  # Git Hooks (Commitlint, Lint-staged)
 ```
+
+## 主な機能
+
+### セキュリティ・品質
+
+- **レート制限**: Upstash Redis を使用した API レート制限 (Vercel Edge Middleware)
+- **型安全性**: TypeScript + Zod による厳格な型チェック
+- **コード品質**: Biome による自動Lint・Format、Conventional Commits強制
+
+### 開発体験
+
+- **API仕様書**: Hono + Scalar による OpenAPI 仕様書自動生成
+- **Hot Reload**: Next.js Turbopack による高速開発サーバー
+- **テスト環境**: 単体・統合・E2E テストのフルサポート
+
+### CI/CD
+
+- **自動テスト**: PR時に Lint、型チェック、ビルド、テスト実行
+- **E2Eテスト**: main ブランチへのマージ時に Playwright 実行
+- **依存関係更新**: Dependabot による自動PR作成
+
+## ドキュメント
+
+### セットアップ
+
+- [Quickstart Guide](docs/quickstart.md) - 開発者向けセットアップ手順
+- [Admin Setup Guide](docs/admin_setup.md) - 管理者向けプロジェクト作成手順
+- [環境定義と実行ガイド](docs/environments.md) - 環境変数・実行環境の説明
+
+### 設計・仕様
+
+- [技術要件・アーキテクチャ設計書](docs/technical_spec.md) - 全体アーキテクチャ
+- [API 設計ガイドライン](docs/api_design_guidelines.md) - API設計の原則
+- [API バージョニングガイド](docs/api_versioning.md) - APIバージョン管理戦略
+- [Hono API 実装標準](docs/server_standards.md) - サーバーサイド実装標準
+
+### 運用
+
+- [CI/CD ガイドライン](docs/ci_guideline.md) - CI/CD の詳細と運用方法
 
 ## 開発ガイドライン
 
 ### コミット規約
 
-このプロジェクトは [Conventional Commits](https://www.conventionalcommits.org/) を採用しています。
+[Conventional Commits](https://www.conventionalcommits.org/) を採用しています。コミット時に自動チェックされます。
 
 ### コードフォーマット
 
-Biome を使用しています。コミット時に自動的にフォーマットとLintが実行されます。
-
-手動で実行する場合：
+Biome によるLintとFormatがコミット時に自動実行されます。手動実行：
 
 ```bash
 pnpm biome check --apply
 ```
-
-## CI/CD
-
-このプロジェクトはGitHub Actionsを使用してCIを実行します。詳細は [CI/CDガイドライン](docs/ci_guideline.md) を参照してください。
-
-### 実行される自動チェック
-
-- **Lint & Format**: Biomeによるコード品質チェック
-- **TypeScript Check**: 型安全性の検証
-- **Build**: Next.jsアプリケーションのビルド
-- **Unit & Integration Tests**: テスト実行（カバレッジレポート付き）
-- **E2E Tests**: E2Eテスト（mainブランチのみ）
-
-### GitHub Secretsの設定
-
-CIでInfisical CLIを使用するため、以下のシークレットをGitHubリポジトリに設定する必要があります：
-
-1. GitHubリポジトリの **Settings** > **Secrets and variables** > **Actions** に移動
-2. **New repository secret** をクリックして以下を追加：
-   - Name: `INFISICAL_SECRET`
-   - Value: 上記で作成したService Token（`st.`で始まる長い文字列全体をコピー）
-
-**Infisical Service Tokenの作成方法**:
-
-1. [Infisicalダッシュボード](https://app.infisical.com/)にログイン
-2. プロジェクト「webservice-next-hono-base」を選択
-3. 上部の **Settings** タブをクリック
-4. **Project Settings** を選択
-5. **Access Control** タブをクリック
-6. **Service Tokens** セクションで **Create service token** をクリック
-7. 設定：
-   - **Service Token Name**: `GitHub Actions CI`
-   - **Environment**: `staging`
-   - **Secrets Path**: `/` (デフォルトのまま)
-   - **Expiration**: 無期限（Never expire）または十分に長い期間
-   - **Permissions**: `Read` ✅
-8. **Create** ボタンをクリック
-9. 表示される `st.`で始まる長い文字列（Service Token）を**必ずコピーして保存**（この画面は一度しか表示されません）
-
-### ワークフロー
-
-- **`.github/workflows/test.yml`**: プルリクエスト時に実行
-  - Lint、型チェック、ビルド、単体テスト、統合テストを実行
-- **`.github/workflows/full-test.yml`**: mainブランチへのpush時に実行
-  - 上記に加えてE2Eテストも実行
-
-### 依存関係の自動更新
-
-Dependabotが依存関係を自動的にチェックし、更新PRを作成します：
-
-- npm パッケージ: 週次
-- GitHub Actions: 月次
-- Docker イメージ: 月次
-
-### ローカルでのCI検証
-
-ローカルで全てのCIチェックを実行する方法は [CI/CDガイドライン](docs/ci_guideline.md#ローカルでのci検証) を参照してください。
-
-## ドキュメント
-
-プロジェクトの詳細なドキュメントは `docs/` ディレクトリにあります。
-
-- **概要 & 要件**
-  - [技術要件・アーキテクチャ設計書](docs/technical_spec.md)
-  - [やりたいこと (TODOリスト)](docs/want-todo.md)
-
-- **ガイドライン & 標準**
-  - [API 設計ガイドライン (案)](docs/api_design_guidelines.md)
-  - [API バージョニングガイド](docs/api_versioning.md)
-  - [Hono API 実装標準](docs/server_standards.md)
-  - [CI/CD ガイドライン](docs/ci_guideline.md)
-
-- **セットアップ & 運用**
-  - [Quickstart Guide](docs/quickstart.md)
-  - [環境定義と実行ガイド](docs/environments.md)
-  - [Admin Setup Guide](docs/admin_setup.md)
 
 ## ライセンス
 

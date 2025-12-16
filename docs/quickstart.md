@@ -33,11 +33,15 @@ corepack enable pnpm
 
 ### Step 1: Clone & Install
 
-リポジトリをクローンし、依存パッケージをインストールします。
+管理者から共有されたリポジトリURLを使用してクローンし、依存パッケージをインストールします。
+
+> [!NOTE]
+> リポジトリURLは管理者から共有されます。`docs/admin_setup.md` の手順に従って作成されたプロジェクト固有のリポジトリです。
 
 ```bash
-git clone <repository-url>
-cd webservice-next-hono-base
+# 管理者から共有されたURLを使用
+git clone <管理者から共有されたリポジトリURL>
+cd <リポジトリ名>
 pnpm install
 ```
 
@@ -50,7 +54,10 @@ infisical login
 ```
 
 ブラウザが立ち上がるので、認証を完了させてください。
-その後、ターミナルでプロジェクトを選択するプロンプトが表示された場合、適切なプロジェクト（`webservice-next-hono-base` 等）を選択してください。
+その後、ターミナルでプロジェクトを選択するプロンプトが表示された場合、**管理者から共有されたプロジェクト名**を選択してください。
+
+> [!TIP]
+> Infisicalのプロジェクト名は管理者から共有されます。不明な場合は管理者に確認してください。
 
 ### Step 3: Database Setup
 

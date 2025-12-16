@@ -1,4 +1,4 @@
-name: webservice-next-hono-base
+name: next-hono-noauth-base
 
 services:
   db:
