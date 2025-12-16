@@ -15,7 +15,12 @@ export default defineConfig(({ mode }) => {
       globals: false,
       environment: "node",
       include: ["**/*.test.ts", "**/*.test.tsx"],
-      exclude: ["**/*.integration.test.ts", "node_modules", ".next", "e2e/**"],
+      exclude: [
+        "**/*.integration.test.ts",
+        "node_modules",
+        ".next",
+        "test-e2e/**",
+      ],
       env: {
         ...env,
       },

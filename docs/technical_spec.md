@@ -108,7 +108,7 @@ pnpm dev
 | :--- | :--- | :--- | :--- |
 | **Unit Test** | **Vitest** | ドメインロジック等の単体テスト。<br>`*.test.ts` (統合テスト以外) | `pnpm test:unit` |
 | **Integration Test** | **Vitest** | APIエンドポイント等の統合テスト（DB接続あり）。<br>`*.integration.test.ts` | `pnpm test:integration` |
-| **End-to-End** | **Playwright** | ブラウザを用いたE2Eテスト。<br>`e2e/**/*` | `pnpm test:e2e` |
+| **End-to-End** | **Playwright** | ブラウザを用いたE2Eテスト。<br>`test-e2e/**/*` | `pnpm test:e2e` |
 
 > **Note**: `pnpm test` コマンドは Unit と Integration の両方を実行します。
 
@@ -123,8 +123,8 @@ pnpm dev
         * ファイル名には `.integration.test.ts` を付与して区別する。
     * **APIテスト**:
         * Honoの `app.request()` を使用して、HTTPサーバを起動せずにリクエストをシミュレーションします。
-        * 統合APIテストの配置場所: `apps/web/test/integration/`
-        * 例: `apps/web/test/integration/system.integration.test.ts` で `/api/health` を検証。
+        * 統合APIテストの配置場所: `apps/web/server/test-integration/`
+        * 例: `apps/web/server/test-integration/system.integration.test.ts` で `/api/health` を検証。
 3. **End-to-End (E2E)**:
     * 対象: Frontendを含む全システムのユーザーフロー。
     * DB接続: 行う。
@@ -301,9 +301,9 @@ DBロジック（スキーマやクライアント）は `packages/db` に配置
 これにより、IDE拡張機能との互換性を保ちつつ、ローカルに機密情報を永続させないセキュアな運用を実現しています。
 
 * **仕組み**: `apps/web/server/infrastructure/repositories/post.repository.integration.test.ts` などの統合テスト実行時に以下が自動実行されます。
-    1. **Setup**: `vitest.integration.config.ts` の `globalSetup` (`apps/web/test/integration-global-setup.ts`) が起動。
+    1. **Setup**: `vitest.integration.config.ts` の `globalSetup` (`apps/web/server/test-setup/integration-global-setup.ts`) が起動。
     2. **Generate**: `infisical export` を実行し、一時的な `.env` ファイルを生成 (CI環境ではスキップ)。
-    3. **Load**: `apps/web/test/load-env.ts` が `.env` を読み込み。
+    3. **Load**: `apps/web/server/test-setup/load-env.ts` が `.env` を読み込み。
     4. **Teardown**: テスト終了後、`.env` ファイルを即座に削除。
 * **メリット**:
   * **IDE互換性**: VS Code の Vitest 拡張機能からも問題なく動作します。

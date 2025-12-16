@@ -15,10 +15,10 @@ export default defineConfig(({ mode }) => {
       globals: false,
       environment: "node",
       include: ["**/*.integration.test.ts"],
-      exclude: ["node_modules", ".next", "e2e/**"],
+      exclude: ["node_modules", ".next", "test-e2e/**"],
       fileParallelism: false, // Enforce sequential execution
-      globalSetup: ["./test/integration-global-setup.ts"],
-      setupFiles: ["./test/load-env.ts"],
+      globalSetup: ["./server/test-setup/integration-global-setup.ts"],
+      setupFiles: ["./server/test-setup/load-env.ts"],
       env: {
         ...env,
       },

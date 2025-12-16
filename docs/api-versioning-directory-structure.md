@@ -42,7 +42,7 @@
 
 | リソース | 配置場所 | 理由 |
 |---------|---------|------|
-| **E2Eテスト** | `e2e/` | Webアプリの場合、バージョン分けは不要 |
+| **E2Eテスト** | `test-e2e/` | Webアプリの場合、バージョン分けは不要 |
 
 > [!NOTE]
 > Webアプリケーション（Next.js）の場合、フロントエンドとバックエンドは常に一緒にデプロイされるため、E2Eテストをバージョンごとに分ける必要はありません。
@@ -89,7 +89,7 @@ apps/web/
 │   ├── lib/
 │   └── index.ts            # エントリーポイント
 │
-└── e2e/                    # E2Eテスト（server と並列）
+└── test-e2e/                    # E2Eテスト（server と並列）
     ├── api/
     │   ├── posts.spec.ts           # v0 API のE2Eテスト
     │   ├── health.spec.ts          # v0 API のE2Eテスト
@@ -149,7 +149,7 @@ apps/web/
 │   ├── lib/
 │   └── index.ts            # エントリーポイント
 │
-└── e2e/                    # E2Eテスト（server と並列）
+└── test-e2e/                    # E2Eテスト（server と並列）
     ├── api/
     │   ├── posts.spec.ts
     │   ├── health.spec.ts
@@ -206,7 +206,7 @@ apps/web/
 │   │
 │   └── index.ts                     # 全バージョンの統合
 │
-└── e2e/                             # E2Eテスト（serverと並列、変更なし）
+└── test-e2e/                             # E2Eテスト（serverと並列、変更なし）
     ├── api/
     │   ├── posts.spec.ts
     │   ├── health.spec.ts
@@ -221,7 +221,7 @@ apps/web/
 > - `infrastructure/repositories/` も各バージョンに配置
 > - `test-integration/` を `server/api/v0/test-integration/` に移動
 > - `test-setup/` はそのまま残す（全バージョン共通）
-> - **`e2e/` は変更なし**（Webアプリの場合）
+> - **`test-e2e/` は変更なし**（Webアプリの場合）
 
 ---
 
@@ -243,7 +243,7 @@ apps/web/
 
 ### 3. 変更しないもの
 
-- `e2e/` - E2Eテストはそのまま（Webアプリの場合、バージョン分けは不要）
+- `test-e2e/` - E2Eテストはそのまま（Webアプリの場合、バージョン分けは不要）
 
 ### 4. エントリーポイントの変更
 
@@ -348,7 +348,7 @@ const routes = app
 
 #### serverと並列に配置（バージョン分けなし）
 
-- `e2e/` にそのまま配置
+- `test-e2e/` にそのまま配置
 - Webアプリの場合、最新の組み合わせのみテストすればよい
 
 ---

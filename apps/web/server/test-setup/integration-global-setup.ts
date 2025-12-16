@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const envPath = path.resolve(__dirname, "../.env")
+const envPath = path.resolve(__dirname, "../../.env")
 
 export const setup = () => {
   // CI環境では .env 生成をスキップ
@@ -20,7 +20,7 @@ export const setup = () => {
     execSync(
       "infisical export --projectId=e4ef8bb9-b6f8-46e7-ae59-684ae921781d --env=staging --format=dotenv > .env",
       {
-        cwd: path.resolve(__dirname, "../"),
+        cwd: path.resolve(__dirname, "../../"),
         stdio: "inherit",
       },
     )
