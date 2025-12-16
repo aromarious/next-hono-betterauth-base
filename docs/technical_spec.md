@@ -13,7 +13,7 @@ Webサービスの新規開発、および将来的なサービスの基盤と�
 ### コア・フレームワーク
 
 * **Runtime**: Node.js (v20+ 推奨)
-* **Frontend**: Next.js 14+ (App Router)
+* **Frontend**: Next.js 16+ (App Router)
 * **Backend**: Hono
   * Next.js API Routes 上で動作させる構成 (`app/api/[[...route]]/route.ts`)。
   * **RPC**: Hono RPC を使用し、Frontend/Backend 間で完全な型定義を共有 (End-to-End Type Safety)。
@@ -198,13 +198,12 @@ $ pnpm test:e2e   # ターミナル3: 既存サーバーを再利用してテス
 │       │   ├── usecase/      # Application Business Rules
 │       │   ├── adapter/      # Interface Adapters (Controllers)
 │       │   ├── infrastructure/ # Frameworks & Drivers
-│       │   │   └── db/       # Database Connection & Schema
 │       │   └── index.ts      # DI & Routing
 │       └── package.json
 ├── packages/
 │   ├── config/           # 共通設定 (Biome, TSConfig)
-│   └── ui/               # 共通 UI (shadcn/ui)
-│   <!-- packages/db removed and integrated into apps/web/server/infrastructure -->
+│   ├── ui/               # 共通 UI (shadcn/ui)
+│   └── db/               # Database Connection & Schema
 ├── package.json          # Root Package (Workspaces, Scripts)
 └── turbo.json            # Turborepo 設定
 
@@ -213,7 +212,8 @@ $ pnpm test:e2e   # ターミナル3: 既存サーバーを再利用してテス
 ### バックエンドアーキテクチャ (Clean Architecture)
 
 `apps/web/server` 配下は、**Clean Architecture** に基づいて責務を以下のディレクトリに分割します。
-初期開発のオーバーヘッドを避けるため、パッケージ分割（`packages/*`）ではなく、ディレクトリによるモジュール分割を採用します。
+`apps/web/server` 配下は、**Clean Architecture** に基づいて責務を以下のディレクトリに分割します。
+データベース関連のコードは `packages/db` に切り出し、再利用性と責務の分離を図っています。
 
 1. * **domain**: 純粋なビジネスロジックとエンティティ (Entity)。
      * アプリケーションの中核となるデータ構造とルールを定義します。
@@ -226,7 +226,7 @@ $ pnpm test:e2e   # ターミナル3: 既存サーバーを再利用してテス
 4. **infrastructure**: フレームワークやDBの詳細（Drizzle, API Clientsなど）。
 
 この構成により、テスト容易性と将来的な拡張性を担保します。
-DBロジック（スキーマやクライアント）も `infrastructure/db` に配置します。
+DBロジック（スキーマやクライアント）は `packages/db` に配置します。
 
 ### Clean Root Rule (ルートディレクトリ美化ルール)
 
@@ -387,7 +387,7 @@ API全体にレートリミット機能を導入し、DoS攻撃の防止、コ�
 
 | 変数名 | 必須 | 概要 | 使用箇所 |
 | :--- | :--- | :--- | :--- |
-| `DATABASE_URL` | **Yes** | PostgreSQL 接続文字列 | `apps/web/server/infrastructure/db/client.ts`<br>`apps/web/drizzle.config.ts` |
+| `DATABASE_URL` | **Yes** | PostgreSQL 接続文字列 | `packages/db/src/client.ts`<br>`packages/db/drizzle.config.ts` |
 | `NODE_ENV` | **Yes** | Node.js ランタイム環境 (`development`, `production`, `test`) | `apps/web/server`<br>`project-wide` |
 | `UPSTASH_REDIS_REST_URL` | **Yes** (本番) | Upstash RedisのREST API URL | `apps/web/middleware.ts` |
 | `UPSTASH_REDIS_REST_TOKEN` | **Yes** (本番) | Upstash RedisのREST APIトークン | `apps/web/middleware.ts` |

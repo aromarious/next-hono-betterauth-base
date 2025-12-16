@@ -4,7 +4,7 @@
 
 ## 技術スタック
 
-- **Frontend**: Next.js 14+ (App Router)
+- **Frontend**: Next.js 16+ (App Router)
 - **Backend**: Hono (Next.js API Routes上で動作)
 - **Database**: PostgreSQL
 - **ORM**: Drizzle ORM
@@ -100,12 +100,11 @@ pnpm dev
 ├── .devcontainer/        # Dev Container 設定（現在は非推奨）
 ├── .husky/               # Git Hooks 設定
 ├── apps/
-│   ├── web/              # Next.js (Port 3000)
-│   └── api/              # Hono API
+│   └── web/              # Next.js (Port 3000)
 ├── packages/
 │   ├── config/           # 共通設定
 │   ├── ui/               # 共通UI
-│   └── db/               # DB設定
+│   └── db/               # DB設定 (Drizzle ORM)
 └── docs/                 # ドキュメント
 ```
 
@@ -184,8 +183,22 @@ Dependabotが依存関係を自動的にチェックし、更新PRを作成し�
 
 ## ドキュメント
 
-- [技術仕様書](docs/technical_spec.md): 技術選定、アーキテクチャの詳細
-- [CI/CDガイドライン](docs/ci_guideline.md): CI/CD環境の説明とトラブルシューティング
+プロジェクトの詳細なドキュメントは `docs/` ディレクトリにあります。
+
+- **概要 & 要件**
+  - [技術要件・アーキテクチャ設計書](docs/technical_spec.md)
+  - [やりたいこと (TODOリスト)](docs/want-todo.md)
+
+- **ガイドライン & 標準**
+  - [API 設計ガイドライン (案)](docs/api_design_guidelines.md)
+  - [API バージョニングガイド](docs/api_versioning.md)
+  - [Hono API 実装標準](docs/server_standards.md)
+  - [CI/CD ガイドライン](docs/ci_guideline.md)
+
+- **セットアップ & 運用**
+  - [Quickstart Guide](docs/quickstart.md)
+  - [環境定義と実行ガイド](docs/environments.md)
+  - [Admin Setup Guide](docs/admin_setup.md)
 
 ## ライセンス
 

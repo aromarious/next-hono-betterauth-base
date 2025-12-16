@@ -4,15 +4,22 @@
 
 ## 概要
 
+## 概要
+
 現在のプロジェクトでは、API バージョニングを以下の構造で管理しています：
 
 - `/api/health` - バージョンレスのヘルスチェック
-- `/api/v0/*` - 初期バージョンの API
-- `/api/v1/*` - 新しいバージョンの API（将来的に追加）
+- `/api/v0/*` - 初期の API（現在のメインバージョン）
 
-## v1 API の追加手順
+将来的に新しいバージョン（例: `v1`）を追加する際は、以下のガイドラインに従って拡張してください。
+
+## v1 API の追加手順 (将来的な拡張ガイド)
+
+新しいAPIバージョン (`v1`) を作成する場合のステップバイステップガイドです。
 
 ### 1. ルートファイルの作成
+
+新しいバージョンのディレクトリ `apps/web/server/routes/v1/` を作成し、ルート定義を記述します。
 
 #### `apps/web/server/routes/v1/system.ts`
 
@@ -40,25 +47,6 @@ const v1HealthRoute = createRoute({
   },
 })
 
-const helloRoute = createRoute({
-  method: "get",
-  path: "/hello",
-  tags: ["v1/System"],
-  responses: {
-    200: {
-      content: {
-        "application/json": {
-          schema: z.object({
-            message: z.string(),
-            version: z.string(),
-          }),
-        },
-      },
-      description: "Simple hello endpoint",
-    },
-  },
-})
-
 export const configureV1SystemRoutes = <
   E extends Env,
   S extends {},
@@ -70,155 +58,20 @@ export const configureV1SystemRoutes = <
     .openapi(v1HealthRoute, (c) => {
       return c.json({ status: "ok", version: "v1" })
     })
-    .openapi(helloRoute, (c) => {
-      return c.json({ message: "Hello from Hono v1!", version: "v1" })
-    })
 }
 ```
 
 #### `apps/web/server/routes/v1/posts.ts`
 
+既存の `v0` の実装を参考に、必要な変更（リクエスト/レスポンス構造の変更など）を加えたルート定義を作成します。
+
 ```typescript
 import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi"
-import {
-  CreatePostSchema,
-  PostSchema,
-  UpdatePostSchema,
-} from "@/server/domain/post.schema"
-import { db } from "@/server/infrastructure/db/client"
-import { PostRepositoryImpl as PostRepository } from "@/server/infrastructure/repositories/post.repository.drizzle"
-import { PostUseCase } from "@/server/usecase/post.usecase"
-import type { Env } from "hono"
+// ... 必要なインポート
 
-// v1 用のリポジトリとユースケースのインスタンス化
-const postRepository = new PostRepository(db)
-const postUseCase = new PostUseCase(postRepository)
 const tags = ["v1/Posts"]
 
-// v1 では、ページネーションやフィルタリングなどの新機能を追加できます
-const listPostsRoute = createRoute({
-  method: "get",
-  path: "/posts",
-  tags,
-  request: {
-    query: z.object({
-      page: z.string().optional(),
-      limit: z.string().optional(),
-    }),
-  },
-  responses: {
-    200: {
-      content: {
-        "application/json": {
-          schema: z.object({
-            data: z.array(PostSchema),
-            pagination: z.object({
-              page: z.number(),
-              limit: z.number(),
-              total: z.number(),
-            }),
-          }),
-        },
-      },
-      description: "List all posts with pagination",
-    },
-  },
-})
-
-const getPostRoute = createRoute({
-  method: "get",
-  path: "/posts/:id",
-  tags,
-  responses: {
-    200: {
-      content: {
-        "application/json": {
-          schema: PostSchema,
-        },
-      },
-      description: "Get a post by ID",
-    },
-    404: {
-      description: "Post not found",
-    },
-    400: {
-      description: "Invalid ID",
-    },
-  },
-})
-
-const createPostRoute = createRoute({
-  method: "post",
-  path: "/posts",
-  tags,
-  request: {
-    body: {
-      content: {
-        "application/json": {
-          schema: CreatePostSchema,
-        },
-      },
-    },
-  },
-  responses: {
-    201: {
-      content: {
-        "application/json": {
-          schema: PostSchema,
-        },
-      },
-      description: "Create a new post",
-    },
-  },
-})
-
-const updatePostRoute = createRoute({
-  method: "put",
-  path: "/posts/:id",
-  tags,
-  request: {
-    body: {
-      content: {
-        "application/json": {
-          schema: UpdatePostSchema,
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      content: {
-        "application/json": {
-          schema: PostSchema,
-        },
-      },
-      description: "Update a post",
-    },
-    404: {
-      description: "Post not found",
-    },
-    400: {
-      description: "Invalid ID",
-    },
-  },
-})
-
-const deletePostRoute = createRoute({
-  method: "delete",
-  path: "/posts/:id",
-  tags,
-  responses: {
-    204: {
-      description: "Delete a post",
-    },
-    404: {
-      description: "Post not found",
-    },
-    400: {
-      description: "Invalid ID",
-    },
-  },
-})
+// ... ルート定義 (v0とは異なる仕様で定義可能)
 
 export const configureV1PostsRoutes = <
   E extends Env,
@@ -227,140 +80,50 @@ export const configureV1PostsRoutes = <
 >(
   app: OpenAPIHono<E, S, P>,
 ) => {
-  return app
-    .openapi(listPostsRoute, async (c) => {
-      // v1 ではページネーション対応
-      const page = Number(c.req.query("page") || "1")
-      const limit = Number(c.req.query("limit") || "10")
-      
-      const allPosts = await postRepository.findAll()
-      const total = allPosts.length
-      const start = (page - 1) * limit
-      const end = start + limit
-      const paginatedPosts = allPosts.slice(start, end)
-      
-      return c.json({
-        data: paginatedPosts.map((p) => p.toJSON()) as any,
-        pagination: {
-          page,
-          limit,
-          total,
-        },
-      })
-    })
-    .openapi(getPostRoute, async (c) => {
-      const id = c.req.param("id")
-      if (!id) return c.json({ error: "Invalid ID" } as any, 400)
-
-      const post = await postRepository.findById(id)
-
-      if (!post) {
-        return c.json({ error: "Post not found" } as any, 404)
-      }
-
-      return c.json(post.toJSON() as any)
-    })
-    .openapi(createPostRoute, async (c) => {
-      const args = c.req.valid("json")
-      const savedPost = await postUseCase.createPost(args)
-      return c.json(savedPost.toJSON() as any, 201)
-    })
-    .openapi(updatePostRoute, async (c) => {
-      const id = c.req.param("id")
-      if (!id) return c.json({ error: "Invalid ID" } as any, 400)
-      const args = c.req.valid("json")
-
-      const updatedPost = await postUseCase.updatePost(id, args)
-
-      if (!updatedPost) {
-        return c.json({ error: "Post not found" } as any, 404)
-      }
-
-      return c.json(updatedPost.toJSON() as any)
-    })
-    .openapi(deletePostRoute, async (c) => {
-      const id = c.req.param("id")
-      if (!id) return c.json({ error: "Invalid ID" } as any, 400)
-
-      const deletedPost = await postUseCase.deletePost(id)
-
-      if (!deletedPost) {
-        return c.json({ error: "Post not found" } as any, 404)
-      }
-
-      return c.body(null, 204)
-    })
+    // ... 実装
+    return app
 }
 ```
 
 ### 2. メインサーバーファイルの更新
 
+`apps/web/server/index.ts` を修正し、新しいバージョンのルーティングをマウントします。
+
 #### `apps/web/server/index.ts`
 
 ```typescript
 import { OpenAPIHono } from "@hono/zod-openapi"
-import { Scalar } from "@scalar/hono-api-reference"
-import { cors } from "hono/cors"
-import { env } from "@/env"
-import { configurePostsRoutes } from "./routes/posts"
-import { configureHealthRoute, configureSystemRoutes } from "./routes/system"
+// ... imports
 import { configureV1SystemRoutes } from "./routes/v1/system"
 import { configureV1PostsRoutes } from "./routes/v1/posts"
+import { API_VERSIONS } from "../lib/api-versions"
 
-// Honoアプリケーションの新しいインスタンスを作成し、厳格なルーティングを無効化し、APIのベースパス /api を設定
-const app = new OpenAPIHono({ strict: false }).basePath("/api")
+// ... app setup
 
-configureHealthRoute(app)
-
-// v0 アプリケーション (すべての既存ルートはここに移動)
+// v0 アプリケーション (既存)
 const v0 = new OpenAPIHono()
-const v0_with_system = configureSystemRoutes(v0)
-const v0_final = configurePostsRoutes(v0_with_system)
+// ... configure v0 routes
 
-// v1 アプリケーション (新しいバージョン)
+// v1 アプリケーション (追加)
 const v1 = new OpenAPIHono()
 const v1_with_system = configureV1SystemRoutes(v1)
 const v1_final = configureV1PostsRoutes(v1_with_system)
 
-app
-  // CORS ミドルウェアをすべてのルート (`/*`) に適用し、異なるオリジンからのリクエストを許可します。
-  .use(
-    "/*",
-    cors({
-      origin: env.NODE_ENV === "development" ? ["http://localhost:3000"] : [],
-      credentials: true,
-    }),
-  )
-  // すべてのルート (`*`) に適用されるグローバルなミドルウェアを設定する
-  .use("*", async (c, next) => {
-    console.log("[Hono] Request:", c.req.method, c.req.url)
-    console.log("[Hono] Path:", c.req.path)
-    await next()
-  })
+// マウント
+const routes = app
+  .route("/", healthRoute)
+  .route(`/${API_VERSIONS.v0}`, v0)
+  .route(`/${API_VERSIONS.v1}`, v1_final) // v1 を追加
 
-// OpenAPI Spec definitions
 app.doc("/doc", {
-  openapi: "3.0.0",
-  info: {
-    version: "1.0.0",
-    title: "Webservice Next Hono Base API",
-  },
+  // ...
   tags: [
-    { name: "System", description: "General system endpoints" },
-    { name: "v0/System", description: "v0 System endpoints" },
-    { name: "v0/Posts", description: "v0 Post management endpoints" },
+    // ...
     { name: "v1/System", description: "v1 System endpoints" },
     { name: "v1/Posts", description: "v1 Post management endpoints" },
   ],
   "x-tagGroups": [
-    {
-      name: "General",
-      tags: ["System"],
-    },
-    {
-      name: "v0",
-      tags: ["v0/System", "v0/Posts"],
-    },
+    // ...
     {
       name: "v1",
       tags: ["v1/System", "v1/Posts"],
@@ -368,25 +131,9 @@ app.doc("/doc", {
   ],
 })
 
-// Scalar API Reference
-app.get(
-  "/reference",
-  Scalar({
-    url: "/api/doc",
-  }),
-)
-
-import { API_VERSIONS } from "../lib/api-versions"
-
-// v0 アプリをマウント (/api/v0)
-const routes = app
-  .route(`/${API_VERSIONS.v0}`, v0_final)
-  // v1 アプリをマウント (/api/v1)
-  .route(`/${API_VERSIONS.v1}`, v1_final)
-
+// Export keys for Client Type
 export type AppType = typeof routes
-export type ApiV0Type = typeof v0_final
-export type ApiV1Type = typeof v1_final
+export type ApiV1Type = typeof v1_final // v1型のエクスポート
 export default app
 ```
 

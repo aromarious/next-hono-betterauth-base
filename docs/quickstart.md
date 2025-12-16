@@ -1,74 +1,83 @@
 # Quickstart Guide
 
 プロジェクトへの参加ありがとうございます！
-このプロジェクトでは **Dev Container** を採用しており、Docker と VS Code があれば数クリックで開発環境が整います。
+このプロジェクトでは **pnpm** と **Infisical** を使用したローカル開発フローを採用しています。
 
 ## 1. 前提条件 (Prerequisites)
 
 以下のツールがインストールされている必要があります。
 
-* **Docker Desktop** (または OrbStack 等の互換ランタイム)
-* **Visual Studio Code**
-* **VS Code Extension: Dev Containers** (`ms-vscode-remote.remote-containers`)
+* **Node.js**: v20以上推奨 (Corepack enabled)
+* **pnpm**: パッケージマネージャー
+* **Docker Desktop** (または OrbStack 等): PostgreSQL 実行用
+* **Infisical CLI**: 環境変数管理
+
+### ツールのインストール (macOS)
+
+```bash
+# Docker Desktop
+brew install --cask docker
+
+# Infisical CLI
+brew install infisical/get-cli/infisical
+
+# pnpm (Node.js に同梱されている Corepack を有効化する場合)
+corepack enable pnpm
+```
+
+> [!IMPORTANT]
+> **Docker Desktop の初期設定**:
+> インストール後、必ず **Docker Desktop アプリを一度起動** してください。起動時に管理者権限が求められ、CLIツール（`docker`, `docker-compose` コマンド等）のセットアップが行われます。これをスキップすると `docker` コマンドが見つからないエラーになります。
 
 ## 2. 環境構築手順 (Setup)
 
-### Step 1: Clone & Open
+### Step 1: Clone & Install
 
-リポジトリをクローンし、VS Code で開きます。
+リポジトリをクローンし、依存パッケージをインストールします。
 
 ```bash
 git clone <repository-url>
 cd webservice-next-hono-base
-code .
+pnpm install
 ```
 
-### Step 2: Reopen in Container
-
-VS Code がプロジェクトを開くと、右下に通知が表示されます。
-**"Reopen in Container"** をクリックしてください。
-
-> もし通知が出ない場合は、左下の緑色のボタン `><` をクリックし、**"Reopen in Container"** を選択します。
-
-初回起動時は Docker イメージのビルドが行われるため、数分かかります。
-完了すると、以下のツールがセットアップ済みの環境が立ち上がります：
-
-* Node.js
-* PostgreSQL (Serviceとして起動)
-* Infisical CLI
-* pnpm
-
-### Step 3: Infisical Login (Secrets)
+### Step 2: Infisical Login (Secrets)
 
 環境変数を取得するために、Infisical にログインします。
-ターミナル（VS Code内）で以下を実行してください：
 
 ```bash
 infisical login
 ```
 
 ブラウザが立ち上がるので、認証を完了させてください。
-プロジェクトを選択し、ログインが成功すればOKです。
+その後、ターミナルでプロジェクトを選択するプロンプトが表示された場合、適切なプロジェクト（`webservice-next-hono-base` 等）を選択してください。
 
-### Step 4: Install Dependencies
+### Step 3: Database Setup
 
-依存パッケージをインストールします。
+プロジェクトには Docker Compose 設定が含まれており、以下のコマンドで PostgreSQL コンテナを起動できます。
+
+1. **DBの起動**:
 
 ```bash
-pnpm install
+# packages/config/docker-compose.yml を使用してDBをバックグラウンド起動
+pnpm db:up
 ```
 
-### Step 5: Database Setup
+2. **接続情報の確認**: Infisical 上の `develop` 環境（または `local`）の `DATABASE_URL` が、起動したDB (`localhost:5432`) を指しているか確認してください。
 
-ローカルの PostgreSQL にスキーマを反映します。
+3. **スキーマの適用**:
 
 ```bash
+# Infisical経由で環境変数を読み込み、DBにプッシュ
 pnpm db:push
 ```
+
+> **Note**: DBを停止する場合は `pnpm db:down`、ログを確認する場合は `pnpm db:logs` が使用できます。
 
 ## 3. 開発サーバー起動 (Development)
 
 以下のコマンドで、Frontend (Next.js) と Backend (Hono) が一括で起動します。
+このコマンドは内部で `infisical run` を実行し、必要な環境変数を注入します。
 
 ```bash
 pnpm dev
@@ -76,17 +85,18 @@ pnpm dev
 
 * **Frontend**: http://localhost:3000
 * **API Endpoint**: http://localhost:3000/api/* (Frontend経由でアクセス)
+* **API Scalar Reference**: http://localhost:3000/api/reference (API仕様書)
 
 これで開発を始める準備は完了です！🚀
 
 ## 4. トラブルシューティング
 
-### DBにつながらない場合
-
-Dev Container 内からは `localhost:5432` でアクセス可能です。
-VS Code の拡張機能 **SQLTools** (左側のDBアイコン) を使うと、GUIで接続確認ができます。
-
 ### 環境変数が読み込まれない場合
 
-`infisical login` が完了しているか確認してください。
-また、`pnpm dev` コマンドが内部で `infisical run` を使用しているか `package.json` を確認してください。
+`infisical login` が完了しているか、正しいプロジェクト・環境 (`dev` or `local`) が選択されているか確認してください。
+`pnpm dev` 実行時に `Infisical` のロゴが表示され、変数が注入されているログが出るはずです。
+
+### DBエラー (Connection Refused)
+
+`DATABASE_URL` で指定されているホスト (`localhost` 等) に PostgreSQL が起動しているか確認してください。
+Docker コンテナの場合、ポートフォワーディング (`-p 5432:5432`) が正しく設定されているか確認してください。

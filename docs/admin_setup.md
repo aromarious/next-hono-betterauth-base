@@ -18,11 +18,11 @@ Infisical Cloud (または自社ホスト版) にて、新しいプロジェク�
 
 | Key | Value | 備考 |
 | :--- | :--- | :--- |
-| `DATABASE_URL` | `postgresql://postgres:postgres@db:5432/webapp` | Docker Compose内のDBへの接続文字列 |
+| `DATABASE_URL` | `postgresql://postgres:postgres@localhost:5432/webapp` | Docker Compose (Local) への接続文字列 |
 | `NEXT_PUBLIC_API_URL` | `http://localhost:3000/api` | フロントエンドからのAPI接続先 |
 | `NODE_ENV` | `development` | |
 
-> **注意**: パスワードやDB名は `docker-compose.yml` (後述の実装で作成) の設定と一致させる必要があります。上記は本プロジェクトのデフォルト設定値です。
+> **注意**: パスワードやDB名は `packages/config/docker-compose.yml` の設定と一致させる必要があります。上記は本プロジェクトのデフォルト設定値です。
 
 ### 1-3. メンバーの招待
 

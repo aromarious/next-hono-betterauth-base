@@ -69,7 +69,7 @@
 
 コードがリポジトリにプッシュされた際に自動的に実行される環境です。
 
-- **プラットフォーム**: GitHub Actions (予定)
+- **プラットフォーム**: GitHub Actions
 - **構成**:
   - GitHub Actions Runner上で Node.js と Docker Service (Postgres) を立ち上げてテストを実行します。
   - 環境変数は **Infisical** を使用して注入します。（Infisicalへのアクセスに必要なトークンのみ、GitHub Secretsに設定します）

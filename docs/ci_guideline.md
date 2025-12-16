@@ -15,6 +15,7 @@
 | **Lint & Format** | Biomeによるコードフォーマットとリントチェック | ✅ |
 | **TypeScript Check** | TypeScriptの型チェック | ✅ |
 | **Build** | Next.jsアプリケーションのビルド | ✅ |
+| **DB Migration** | `packages/db` でのマイグレーション実行 | - |
 | **Unit & Integration Tests** | 単体テストと統合テスト（カバレッジ付き） | - |
 
 #### 2. Main Push時の完全テスト (`.github/workflows/full-test.yml`)
@@ -26,6 +27,7 @@
 | **Lint & Format** | Biomeによるコードフォーマットとリントチェック | ✅ |
 | **TypeScript Check** | TypeScriptの型チェック | ✅ |
 | **Build** | Next.jsアプリケーションのビルド | ✅ |
+| **DB Migration** | `packages/db` でのマイグレーション実行 | - |
 | **Unit & Integration Tests** | 単体テストと統合テスト（カバレッジ付き） | - |
 | **E2E Tests** | Playwrightによるエンドツーエンドテスト | - |
 
@@ -79,8 +81,10 @@ pnpm test:unit --coverage
 pnpm test:int
 
 # 統合テスト（カバレッジ付き）
+# NOTE: ルートからの直接実行スクリプトはないため、apps/webに移動するか、自分でコマンドを組み立てる必要があります
 cd apps/web
 pnpm test:int:coverage
+cd ../..
 
 # E2Eテスト
 pnpm test:e2e
@@ -104,9 +108,8 @@ pnpm build
 pnpm test:unit
 
 # 5. Integration Tests
-cd apps/web
-infisical run --env=staging -- pnpm test:int
-cd ../..
+# ルートのスクリプトで自動的にInfisical経由で実行されます
+pnpm test:int
 
 # 6. E2E Tests (mainブランチのみ)
 pnpm test:e2e
