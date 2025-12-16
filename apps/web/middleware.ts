@@ -61,7 +61,7 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   // /api/health はレート制限から除外
-  if (pathname === "/api/health") {
+  if (pathname.endsWith("/health")) {
     return NextResponse.next()
   }
 

@@ -1,18 +1,20 @@
 import { z } from "zod"
-import { PostCoreSchema, PostSchema } from "../../domain/post.entity"
+import { postCoreSchema, postSchema } from "../../domain/post.entity"
 
 // OpenAPI Response Schema (with dates as strings)
-export const PostResponseSchema = PostSchema.omit({
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-})
+export const postResponseSchema = postSchema
+  .omit({
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+  })
 
-export const CreatePostSchema = PostCoreSchema
+export const createPostSchema = postCoreSchema
 
-export const UpdatePostSchema = PostCoreSchema.partial()
+export const updatePostSchema = postCoreSchema.partial()
 
-export type CreatePostInput = z.infer<typeof CreatePostSchema>
-export type UpdatePostInput = z.infer<typeof UpdatePostSchema>
+export type CreatePostInput = z.infer<typeof createPostSchema>
+export type UpdatePostInput = z.infer<typeof updatePostSchema>

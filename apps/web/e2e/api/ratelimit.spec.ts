@@ -1,17 +1,24 @@
 import { expect, test } from "@playwright/test"
 
 test.describe("Rate Limiting E2E", () => {
-  test.skip("returns 429 after exceeding rate limit", async ({ request }) => {
+  test("returns 429 after exceeding rate limit", async ({ request }) => {
+    // 共有Redis環境でのテスト干渉を避けるため、ランダムなIPアドレスを使用
+    const randomIp = `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`
     // Note: このテストはレートリミットが有効な環境でのみ実行されます
-    // 現在の設定では DISABLE_RATE_LIMIT=true のため、skipしています
-    // 実行する場合は、レートリミット有効化された環境でテストしてください
+    if (process.env.DISABLE_RATE_LIMIT === "true") {
+      test.skip(true, "Rate limit is disabled in this environment")
+    }
 
     const responses = []
     const maxRequests = 11 // レートリミット（10リクエスト/分）+ 1
 
     // 連続でリクエストを送信
     for (let i = 0; i < maxRequests; i++) {
-      const response = await request.get("/api/v0/posts")
+      const response = await request.get("/api/v0/posts", {
+        headers: {
+          "X-Forwarded-For": randomIp,
+        },
+      })
       responses.push({
         status: response.status(),
         headers: {

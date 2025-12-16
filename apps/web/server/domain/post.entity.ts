@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 // 1. Full Definition (Canonical Schema)
-export const PostSchema = z.object({
+export const postSchema = z.object({
   id: z.string(),
   title: z.string().min(1),
   content: z.string().min(1),
@@ -10,14 +10,14 @@ export const PostSchema = z.object({
 })
 
 // 2. Derive Core Schema from Full Schema
-export const PostCoreSchema = PostSchema.omit({
+export const postCoreSchema = postSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 })
 
-export type PostType = z.infer<typeof PostSchema>
-export type PostCoreType = z.infer<typeof PostCoreSchema>
+export type PostType = z.infer<typeof postSchema>
+export type PostCoreType = z.infer<typeof postCoreSchema>
 
 // Internal props: Core data + Optional system fields
 type PostProps = PostCoreType &
@@ -46,9 +46,9 @@ export class Post {
     return this.props.updatedAt
   }
 
-  public static create(payload: z.infer<typeof PostCoreSchema>): Post {
+  public static create(payload: z.infer<typeof postCoreSchema>): Post {
     // Validate payload against PostCoreSchema
-    const validPayload = PostCoreSchema.parse(payload)
+    const validPayload = postCoreSchema.parse(payload)
 
     return new Post({
       ...validPayload,
@@ -56,7 +56,7 @@ export class Post {
   }
 
   public static reconstruct(payload: PostType): Post {
-    const data = PostSchema.parse(payload)
+    const data = postSchema.parse(payload)
     return new Post(data)
   }
 
@@ -64,14 +64,14 @@ export class Post {
     return !!this.props.id
   }
 
-  public update(payload: Partial<z.infer<typeof PostCoreSchema>>): Post {
+  public update(payload: Partial<z.infer<typeof postCoreSchema>>): Post {
     const updated = {
       ...this.props,
       ...payload,
       updatedAt: new Date(),
     }
     // Validate the resulting state against the core schema
-    PostCoreSchema.parse(updated)
+    postCoreSchema.parse(updated)
 
     return new Post(updated)
   }

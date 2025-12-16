@@ -1,5 +1,5 @@
 import { hc } from "hono/client"
-import type { ApiV0Type, AppType } from "@/server"
+import type { ApiType, AppType } from "@/server"
 import { type ApiVersion, LATEST_API_VERSION } from "./api-versions"
 
 // Assuming API is mounted at /api within the same domain (Next.js config)
@@ -13,4 +13,4 @@ const baseUrl =
 export const client = hc<AppType>(baseUrl)
 
 export const createClient = (version: ApiVersion = LATEST_API_VERSION) =>
-  hc<ApiV0Type>(`${baseUrl}/api/${version}`)
+  hc<ApiType>(`${baseUrl}/api/${version}`)
