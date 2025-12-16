@@ -21,7 +21,7 @@ src/
 ```
 
 ---
-
+  
 ## 詳細なディレクトリ構造
 
 ### 完全な構造例
@@ -463,6 +463,13 @@ apps/web/test/          # 統合テスト（server と並列）
 │   └── ratelimit.integration.test.ts  # v0 API のテスト
 ├── integration-global-setup.ts        # テスト用グローバルセットアップ
 └── load-env.ts                         # 環境変数ロード
+
+apps/web/e2e/           # E2Eテスト（server と並列）
+├── api/
+│   ├── posts.spec.ts           # v0 API のE2Eテスト
+│   ├── health.spec.ts          # v0 API のE2Eテスト
+│   └── ratelimit.spec.ts       # v0 API のE2Eテスト
+└── smoke.spec.ts               # スモークテスト
 ```
 
 ### バージョニング対応後の構造
@@ -503,12 +510,27 @@ apps/web/server/
 │           ├── post.repository.drizzle.ts
 │           └── post.repository.integration.test.ts
 │
-├── test/                      # テスト用ヘルパー（共有）
+├── test/                      # 統合テスト用ヘルパー（共有）
 │   ├── integration-global-setup.ts
 │   └── load-env.ts
 │
+├── e2e/                       # E2Eテスト（serverと並列）
+│   ├── v0/                    # v0のE2Eテスト（e2e/api/から移動）
+│   │   ├── posts.spec.ts
+│   │   ├── health.spec.ts
+│   │   └── ratelimit.spec.ts
+│   │
+│   └── smoke.spec.ts          # スモークテスト（全バージョン共通）
+│
 └── index.ts                   # 全バージョンの統合
 ```
+
+> [!NOTE]
+> **テストの配置原則:**
+>
+> - **ユニットテスト**: 被テストコードと同じフォルダに配置
+> - **統合テスト**: `server/api/v0/integration/` に配置（APIの統合テスト）
+> - **E2Eテスト**: `e2e/v0/` に配置（全体を通してのテスト、serverと並列）
 
 ### 移行のポイント
 
@@ -517,7 +539,7 @@ apps/web/server/
 - `domain/` - ドメインエンティティとポート定義
 - `routes/` - ルート定義とDTO
 - `usecase/` - ビジネスロジック
-- **`test/integration/` - そのバージョンのAPI統合テスト** ← 追加
+- **`test/integration/` → `server/api/v0/integration/`** - v0のAPI統合テスト
 
 #### 2. **共有（shared）に移動するもの**
 
@@ -526,17 +548,24 @@ apps/web/server/
 > [!NOTE]
 > `infrastructure/repositories/` は「永続化に関連する」ため共有します。データベースアクセスの実装は全バージョンで共通ですが、ビジネスロジック（usecase）は各バージョンで異なる可能性があるため分離します。
 
-#### 3. **テスト用ヘルパーは共有に残す**
+#### 3. **serverと並列に配置するもの（E2Eテスト）**
 
-- `test/integration-global-setup.ts` - グローバルセットアップ
+- **`e2e/api/` → `e2e/v0/`** - v0のE2Eテスト（全体を通してのテスト）
+
+#### 4. **テスト用ヘルパーは共有に残す**
+
+- `test/integration-global-setup.ts` - 統合テスト用グローバルセットアップ
 - `test/load-env.ts` - 環境変数ロード
+- `e2e/smoke.spec.ts` - 全バージョン共通のスモークテスト
 
 > [!IMPORTANT]
-> **統合テストの配置ルール:**
+> **テストの配置ルール:**
 >
-> - v0のAPIエンドポイント（`/api/v0/*`）をテストする統合テストは `api/v0/integration/` に移動
-> - テスト用のヘルパーやグローバルセットアップは `test/` に残す（全バージョン共通）
-> - リポジトリ層の統合テストは `shared/infrastructure/repositories/` に残す（永続化層）
+> - **ユニットテスト**: 被テストコードと同じフォルダ（例：`post.entity.test.ts` は `post.entity.ts` のそば）
+> - **統合テスト**: `server/api/v0/integration/` に配置（v0のAPI統合テスト）
+> - **E2Eテスト**: `e2e/v0/` に配置（v0の全体E2Eテスト、serverと並列）
+> - **テストヘルパー**: `test/` や `e2e/` に残す（全バージョン共通）
+> - **リポジトリテスト**: `shared/infrastructure/repositories/` に残す（永続化層）
 
 #### 4. **エントリーポイントの変更**
 
