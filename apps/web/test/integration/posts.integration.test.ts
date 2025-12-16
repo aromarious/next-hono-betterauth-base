@@ -1,8 +1,6 @@
-import { sql } from "drizzle-orm"
+import { db, PostTable, sql } from "@packages/db"
 import { beforeEach, describe, expect, it } from "vitest"
 import app from "@/server/index"
-import { db } from "@/server/infrastructure/db/client"
-import { PostTable } from "@/server/infrastructure/db/schema"
 
 describe("Posts API Integration Test", () => {
   beforeEach(async () => {
@@ -32,7 +30,6 @@ describe("Posts API Integration Test", () => {
       expect(listRes.status).toBe(200)
       const list = await listRes.json()
       expect(list).toHaveLength(1)
-      // biome-ignore lint/style/noNonNullAssertion: Guaranteed by length check
       expect(list[0]!.id).toBe(created.id)
 
       // 3. Retrieve single post

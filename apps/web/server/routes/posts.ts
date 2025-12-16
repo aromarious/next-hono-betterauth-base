@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi"
-import { db } from "@/server/infrastructure/db/client"
+import { db } from "@packages/db"
 import { PostRepositoryImpl as PostRepository } from "@/server/infrastructure/repositories/post.repository.drizzle"
 import { PostUseCase } from "@/server/usecase/post.usecase"
 import { toPostResponse } from "./dto/post.mapper"

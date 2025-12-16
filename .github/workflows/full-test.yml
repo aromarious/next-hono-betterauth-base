@@ -130,8 +130,8 @@ jobs:
         env:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_SECRET }}
         run: |
-          cd apps/web
-          infisical run --projectId=e4ef8bb9-b6f8-46e7-ae59-684ae921781d --env=staging -- pnpm drizzle-kit push
+          cd packages/db
+          infisical run --projectId=e4ef8bb9-b6f8-46e7-ae59-684ae921781d --env=staging -- pnpm db:push
 
       - name: Run Unit Tests
         run: |
@@ -221,8 +221,8 @@ jobs:
         env:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_SECRET }}
         run: |
-          cd apps/web
-          infisical run --projectId=e4ef8bb9-b6f8-46e7-ae59-684ae921781d --env=staging -- pnpm drizzle-kit push
+          cd packages/db
+          infisical run --projectId=e4ef8bb9-b6f8-46e7-ae59-684ae921781d --env=staging -- pnpm db:push
       - name: Run E2E Tests
         env:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_SECRET }}

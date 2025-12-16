@@ -16,7 +16,7 @@
     "test": "turbo run test",
     "test:unit": "turbo run test:unit",
     "test:int": "turbo run test:int",
-    "test:e2e": "infisical run -- turbo run test:e2e",
+    "test:e2e": "infisical run --projectId=e4ef8bb9-b6f8-46e7-ae59-684ae921781d --env=staging -- turbo run test:e2e",
     "test:ci": "turbo run test test:e2e"
   },
   "lint-staged": {

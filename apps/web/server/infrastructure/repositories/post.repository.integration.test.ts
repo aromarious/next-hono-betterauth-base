@@ -1,7 +1,5 @@
-import { sql } from "drizzle-orm"
+import { db, PostTable, sql } from "@packages/db"
 import { afterAll, beforeEach, describe, expect, it } from "vitest"
-import { db } from "@/server/infrastructure/db/client"
-import { PostTable } from "@/server/infrastructure/db/schema"
 import { Post } from "../../domain/post.entity"
 import { PostRepositoryImpl } from "./post.repository.drizzle"
 

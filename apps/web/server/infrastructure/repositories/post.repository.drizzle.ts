@@ -1,8 +1,7 @@
-import { eq } from "drizzle-orm"
+import type { DrizzleClient } from "@packages/db"
+import { eq, PostTable } from "@packages/db"
 import type { PostRepository } from "@/server/domain/ports/post.repository"
 import { Post } from "@/server/domain/post.entity"
-import type { DrizzleClient } from "@/server/infrastructure/db/client"
-import { PostTable } from "@/server/infrastructure/db/schema"
 
 export class PostRepositoryImpl implements PostRepository {
   constructor(private readonly db: DrizzleClient) {}
