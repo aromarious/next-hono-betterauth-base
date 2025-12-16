@@ -6,5 +6,5 @@ globs: src/**/*.{ts,tsx}
 TypeScriptのコードスタイル
 
 - セミコロンはつけない
-- インデント2
+- インデント2spaces
 - importでpathsを利用して表現できるものはする
