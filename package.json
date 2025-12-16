@@ -1,5 +1,5 @@
 {
-  "name": "next-hono-noauth-base",
+  "name": "next-hono-betterauth-base",
   "version": "0.0.0",
   "private": true,
   "scripts": {
