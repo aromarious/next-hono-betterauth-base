@@ -46,7 +46,7 @@ describe("PostRepositoryImpl (Integration)", () => {
       const originalUpdatedAt = saved.updatedAt
 
       // 2. Update logic via entity (simulate delay to ensure timestamp diff)
-      await new Promise((resolve) => setTimeout(resolve, 10))
+      await new Promise((resolve) => setTimeout(resolve, 100))
 
       const toUpdate = saved.update({
         title: "Updated",
