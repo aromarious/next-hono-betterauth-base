@@ -29,7 +29,6 @@ describe("PostUseCase", () => {
       const result = await postUseCase.createPost(input)
 
       expect(mockPostRepository.save).toHaveBeenCalledTimes(1)
-      // biome-ignore lint/style/noNonNullAssertion: Guaranteed by toHaveBeenCalledTimes
       const savedPost = vi.mocked(mockPostRepository.save).mock.calls[0]![0]
 
       expect(savedPost.props.title).toBe(input.title)
@@ -64,7 +63,6 @@ describe("PostUseCase", () => {
       )
 
       // existingPost.id is guaranteed to be defined because we used reconstruct
-      // biome-ignore lint/style/noNonNullAssertion: Guaranteed by findById and reconstruct
       const result = await postUseCase.updatePost(existingPost.id!, updateInput)
 
       expect(mockPostRepository.findById).toHaveBeenCalledWith(existingPost.id)
@@ -103,7 +101,6 @@ describe("PostUseCase", () => {
       vi.mocked(mockPostRepository.delete).mockResolvedValue(existingPost)
 
       // existingPost.id is guaranteed to be defined because we used reconstruct
-      // biome-ignore lint/style/noNonNullAssertion: Guaranteed by findById and reconstruct
       const result = await postUseCase.deletePost(existingPost.id!)
 
       expect(mockPostRepository.delete).toHaveBeenCalledWith(existingPost.id)
