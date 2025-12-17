@@ -1,6 +1,6 @@
 ---
 trigger: glob
-globs: apps/web/e2e/**/*.spec.ts
+globs: apps/web/test-e2e/**/*.spec.ts
 ---
 
 # E2Eテストファイル作成ルール
@@ -10,7 +10,7 @@ globs: apps/web/e2e/**/*.spec.ts
 ## ディレクトリ構造
 
 ```text
-apps/web/e2e/
+apps/web/test-e2e/
 ├── smoke.spec.ts           # スモークテスト（重要な基本機能）
 ├── api/                    # API E2Eテスト
 │   ├── health.spec.ts
