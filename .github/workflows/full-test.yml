@@ -131,7 +131,7 @@ jobs:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_SECRET }}
         run: |
           cd packages/db
-          infisical run --projectId=e4ef8bb9-b6f8-46e7-ae59-684ae921781d --env=staging -- pnpm db:push
+          infisical run --projectId=e3871e85-7a12-4fff-9f5a-5cefd3593a5a --env=staging -- pnpm db:push
 
       - name: Run Unit Tests
         run: |
@@ -148,7 +148,7 @@ jobs:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_SECRET }}
         run: |
           cd apps/web
-          infisical run --projectId=e4ef8bb9-b6f8-46e7-ae59-684ae921781d --env=staging -- pnpm test:int:coverage --coverage.reporter=text --coverage.reporter=json-summary
+          infisical run --projectId=e3871e85-7a12-4fff-9f5a-5cefd3593a5a --env=staging -- pnpm test:int:coverage --coverage.reporter=text --coverage.reporter=json-summary
 
       - name: Publish Integration Test Coverage
         if: github.actor != 'dependabot[bot]' && always()
@@ -222,14 +222,14 @@ jobs:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_SECRET }}
         run: |
           cd packages/db
-          infisical run --projectId=e4ef8bb9-b6f8-46e7-ae59-684ae921781d --env=staging -- pnpm db:push
+          infisical run --projectId=e3871e85-7a12-4fff-9f5a-5cefd3593a5a --env=staging -- pnpm db:push
       - name: Run E2E Tests
         env:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_SECRET }}
           CI: true
         run: |
           cd apps/web
-          infisical run --projectId=e4ef8bb9-b6f8-46e7-ae59-684ae921781d --env=staging -- pnpm test:e2e
+          infisical run --projectId=e3871e85-7a12-4fff-9f5a-5cefd3593a5a --env=staging -- pnpm test:e2e
 
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v6
