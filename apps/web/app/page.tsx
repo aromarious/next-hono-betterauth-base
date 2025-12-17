@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import SignInButton from "@/components/sign-in"
 import { createClient } from "@/lib/client"
 
 export default function Home() {
@@ -29,6 +30,7 @@ export default function Home() {
           <p className="mt-4 text-xl">API Response: {message}</p>
         )}
       </div>
+      <SignInButton />
     </main>
   )
 }

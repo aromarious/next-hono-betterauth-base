@@ -31,6 +31,7 @@
     "@t3-oss/env-nextjs": "^0.13.10",
     "@upstash/ratelimit": "^2.0.7",
     "@upstash/redis": "^1.35.7",
+    "better-auth": "^1.4.7",
     "hono": "^4.10.8",
     "next": "^16.0.0",
     "postgres": "^3.4.7",
