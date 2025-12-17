@@ -7,4 +7,4 @@ TypeScriptのコードスタイル
 
 - セミコロンはつけない
 - インデント2spaces
-- importでpathsを利用して表現できるものはする
+- importでpathsを利用して表現できるものはする(@/...)
