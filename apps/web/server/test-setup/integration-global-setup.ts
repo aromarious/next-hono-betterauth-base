@@ -18,7 +18,7 @@ export const setup = () => {
   // Infisical から .env を生成
   try {
     execSync(
-      "infisical export --projectId=e4ef8bb9-b6f8-46e7-ae59-684ae921781d --env=staging --format=dotenv > .env",
+      "infisical export --projectId=e3871e85-7a12-4fff-9f5a-5cefd3593a5a --env=staging --format=dotenv > .env",
       {
         cwd: path.resolve(__dirname, "../../"),
         stdio: "inherit",

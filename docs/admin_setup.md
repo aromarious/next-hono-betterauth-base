@@ -10,7 +10,7 @@
 ### 1-1. GitHubでテンプレートを使用
 
 1. **このリポジトリのGitHubページにアクセス**
-   - テンプレートリポジトリ: `aromarious/next-hono-noauth-base`
+   - テンプレートリポジトリ: `aromarious/next-hono-betterauth-base`
 
 2. **"Use this template" ボタンをクリック**
    - ページ右上の緑色の "Use this template" ボタンをクリック

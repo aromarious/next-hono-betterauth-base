@@ -1,8 +1,8 @@
-name: next-hono-noauth-base
+name: next-hono-betterauth-base
 
 services:
   db:
-    container_name: postgres
+    container_name: postgres-betterauth
     build:
       context: ./database
     restart: unless-stopped
@@ -21,7 +21,7 @@ services:
       retries: 5
 
   test-db:
-    container_name: postgres-test
+    container_name: postgres-betterauth-test
     build:
       context: ./database
     restart: unless-stopped

@@ -1,5 +1,4 @@
 const fs = require("fs")
-const path = require("path")
 
 const summaryPath = process.argv[2]
 const title = process.argv[3] || "Coverage Report"

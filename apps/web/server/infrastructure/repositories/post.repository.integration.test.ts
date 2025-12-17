@@ -33,7 +33,6 @@ describe("PostRepositoryImpl (Integration)", () => {
       // Verify in DB
       const inDb = await db.select().from(PostTable)
       expect(inDb).toHaveLength(1)
-      // biome-ignore lint/style/noNonNullAssertion: Guaranteed by toHaveLength(1)
       expect(inDb[0]!.id).toBe(saved.id)
     })
 
@@ -57,16 +56,13 @@ describe("PostRepositoryImpl (Integration)", () => {
 
       expect(updated.id).toBe(saved.id)
       expect(updated.title).toBe("Updated")
-      // biome-ignore lint/style/noNonNullAssertion: Saved entities must have updatedAt
       expect(updated.updatedAt!.getTime()).toBeGreaterThan(
-        // biome-ignore lint/style/noNonNullAssertion: Saved entities must have updatedAt
         originalUpdatedAt!.getTime(),
       )
 
       // Verify in DB
       const inDb = await db.select().from(PostTable)
       expect(inDb).toHaveLength(1)
-      // biome-ignore lint/style/noNonNullAssertion: Guaranteed by toHaveLength(1)
       expect(inDb[0]!.title).toBe("Updated")
     })
   })
@@ -81,12 +77,9 @@ describe("PostRepositoryImpl (Integration)", () => {
       const post = Post.create({ title: "Find Me", content: "..." })
       const saved = await repository.save(post)
 
-      // biome-ignore lint/style/noNonNullAssertion: Saved entity has ID
       const found = await repository.findById(saved.id!)
       expect(found).not.toBeNull()
-      // biome-ignore lint/style/noNonNullAssertion: Guaranteed by not.toBeNull()
       expect(found!.id).toBe(saved.id)
-      // biome-ignore lint/style/noNonNullAssertion: Guaranteed by not.toBeNull()
       expect(found!.title).toBe("Find Me")
     })
   })
@@ -106,10 +99,8 @@ describe("PostRepositoryImpl (Integration)", () => {
       const post = Post.create({ title: "Delete Me", content: "..." })
       const saved = await repository.save(post)
 
-      // biome-ignore lint/style/noNonNullAssertion: Saved entity has ID
       const deleted = await repository.delete(saved.id!)
       expect(deleted).not.toBeNull()
-      // biome-ignore lint/style/noNonNullAssertion: Guaranteed by not.toBeNull()
       expect(deleted!.id).toBe(saved.id)
 
       // Verify DB
