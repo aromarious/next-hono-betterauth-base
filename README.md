@@ -1,6 +1,6 @@
-# Next Hono NoAuth Base
+# Next Hono BetterAuth Base
 
-認証機能なしのモダンなWebアプリケーション開発用テンプレートリポジトリ。Next.js、Hono、Drizzle ORMを使用したフルスタック構成。
+BetterAuth統合済みのモダンなWebアプリケーション開発用テンプレートリポジトリ。Next.js、Hono、Drizzle ORM、BetterAuthを使用したフルスタック構成。
 
 ## これは何？
 
@@ -9,10 +9,11 @@
 ### 特徴
 
 - **モダンなフルスタック構成**: Next.js 16 (App Router) + Hono API
+- **認証システム**: BetterAuth + Google OAuth 統合
 - **型安全性**: TypeScript + Drizzle ORM
 - **モノレポ構成**: Turborepo で複数パッケージを効率的に管理
 - **開発体験**: Biome (Lint/Format)、Git Hooks、CI/CD標準装備
-- **本番対応**: レート制限、API仕様書自動生成、E2Eテスト
+- **本番対応**: レート制限、API仕様書自動生成、E2Eテスト（認証含む）
 
 ## クイックスタート
 
@@ -39,6 +40,7 @@
 ### バックエンド
 
 - **Hono** (Next.js API Routes 上で動作)
+- **BetterAuth** (認証・セッション管理)
 - **Drizzle ORM**
 - **PostgreSQL**
 
@@ -64,21 +66,30 @@
 .
 ├── apps/
 │   └── web/                 # Next.js アプリケーション (Port 3000)
-│       ├── src/
-│       │   ├── app/         # App Router ページ
-│       │   ├── server/      # Hono API ルーティング
-│       │   └── env.ts       # 環境変数スキーマ (Zod)
-│       └── tests/           # テスト (unit/integration/e2e)
+│       ├── app/             # App Router ページ・レイアウト
+│       │   ├── api/         # API Routes (Hono統合)
+│       │   └── auth/        # 認証関連ページ
+│       ├── components/      # UIコンポーネント
+│       ├── lib/             # ユーティリティ・クライアント
+│       │   ├── auth.ts      # BetterAuth設定
+│       │   └── rate-limit.ts # レート制限設定
+│       ├── server/          # Hono API実装
+│       │   ├── routes/      # APIルート定義
+│       │   ├── middleware/  # 認証ミドルウェア
+│       │   ├── domain/      # ドメインエンティティ
+│       │   └── usecase/     # ビジネスロジック
+│       ├── test-e2e/        # E2Eテスト (Playwright)
+│       └── env.ts           # 環境変数スキーマ (Zod)
 │
 ├── packages/
 │   ├── db/                  # データベース・ORM設定
-│   │   ├── drizzle/         # Drizzle ORM スキーマ・マイグレーション
-│   │   └── src/             # DB接続・エンティティ
-│   ├── ui/                  # 共通UIコンポーネント
+│   │   ├── src/             # DB接続・スキーマ定義
+│   │   └── drizzle.config.ts
+│   ├── ui/                  # 共通UIコンポーネント (shadcn/ui)
 │   └── config/              # 共通設定ファイル
 │       ├── docker-compose.yml
-│       ├── tailwind/
-│       └── typescript/
+│       ├── biome.json       # Lint/Format設定
+│       └── commitlint.config.js
 │
 ├── docs/                    # ドキュメント
 ├── .github/workflows/       # CI/CD定義
@@ -89,6 +100,7 @@
 
 ### セキュリティ・品質
 
+- **認証・認可**: BetterAuth による堅牢な認証システム（Google OAuth対応）
 - **レート制限**: Upstash Redis を使用した API レート制限 (Vercel Edge Middleware)
 - **型安全性**: TypeScript + Zod による厳格な型チェック
 - **コード品質**: Biome による自動Lint・Format、Conventional Commits強制
@@ -97,7 +109,8 @@
 
 - **API仕様書**: Hono + Scalar による OpenAPI 仕様書自動生成
 - **Hot Reload**: Next.js Turbopack による高速開発サーバー
-- **テスト環境**: 単体・統合・E2E テストのフルサポート
+- **テスト環境**: 単体・統合・E2E テストのフルサポート（認証テスト含む）
+- **E2E認証**: Drizzle-based seeding による高速で安定したテスト環境
 
 ### CI/CD
 

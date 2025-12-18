@@ -34,7 +34,6 @@
     "better-auth": "^1.4.7",
     "hono": "^4.10.8",
     "next": "^16.0.0",
-    "postgres": "^3.4.7",
     "react": "catalog:",
     "react-dom": "catalog:",
     "zod": "catalog:"
@@ -50,6 +49,7 @@
     "dotenv": "^17.2.3",
     "eslint": "^9.15.0",
     "postcss": "catalog:",
+    "postgres": "^3.4.7",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
     "vite": "^7.3.0",

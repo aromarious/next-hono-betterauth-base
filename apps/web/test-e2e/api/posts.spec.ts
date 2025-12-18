@@ -53,6 +53,11 @@ test.describe("Posts API E2E", () => {
       `/api/v0/protected/posts/${createdPost.id}`,
     )
 
+    if (response.status() !== 200) {
+      const body = await response.text()
+      console.log("Response Body:", body)
+      throw new Error(`Expected 200 but got ${response.status()}: ${body}`)
+    }
     expect(response.status()).toBe(200)
 
     const data = await response.json()
