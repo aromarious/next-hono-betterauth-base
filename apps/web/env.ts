@@ -10,6 +10,11 @@ export const env = createEnv({
     // Upstash Redis (Rate Limiting)
     UPSTASH_REDIS_REST_URL: z.string().url().optional(),
     UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
+    // Better Auth
+    BETTER_AUTH_SECRET: z.string(),
+    BETTER_AUTH_URL: z.string().url(),
+    GOOGLE_CLIENT_ID: z.string(),
+    GOOGLE_CLIENT_SECRET: z.string(),
     DISABLE_RATE_LIMIT: z
       .enum(["true", "false"])
       .default("false")
@@ -27,6 +32,10 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
+    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
     DISABLE_RATE_LIMIT: process.env.DISABLE_RATE_LIMIT,
     RATE_LIMIT_MAX_REQUESTS: process.env.RATE_LIMIT_MAX_REQUESTS,
     RATE_LIMIT_WINDOW: process.env.RATE_LIMIT_WINDOW,

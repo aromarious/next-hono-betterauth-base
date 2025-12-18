@@ -1,16 +1,44 @@
 import { hc } from "hono/client"
+import { baseUrl } from "@/lib/baseUrl"
+
 import type { ApiType, AppType } from "@/server"
 import { type ApiVersion, LATEST_API_VERSION } from "./api-versions"
 
-// Assuming API is mounted at /api within the same domain (Next.js config)
-const baseUrl =
-  typeof window !== "undefined"
-    ? window.location.origin
-    : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000"
+import { authClient } from "./auth-client"
 
 export const client = hc<AppType>(baseUrl)
 
-export const createClient = (version: ApiVersion = LATEST_API_VERSION) =>
-  hc<ApiType>(`${baseUrl}/api/${version}`)
+interface ClientOptions {
+  headers?: HeadersInit
+  fetch?: typeof fetch
+  version?: ApiVersion
+}
+
+export const createClient = (options?: ClientOptions) => {
+  const version = options?.version ?? LATEST_API_VERSION
+
+  const basePublic = hc<ApiType>(`${baseUrl}/api/${version}`, {
+    fetch: options?.fetch,
+  })
+
+  const baseProtected = hc<ApiType>(`${baseUrl}/api/${version}`, {
+    headers: options?.headers as Record<string, string>,
+    fetch: options?.fetch,
+  }).protected
+
+  type ProtectedClientType = typeof baseProtected & { auth: typeof authClient }
+
+  const protectedClient = new Proxy(baseProtected, {
+    get(target, prop, receiver) {
+      if (prop === "auth") {
+        return authClient
+      }
+      return Reflect.get(target, prop, receiver)
+    },
+  }) as unknown as ProtectedClientType
+
+  return {
+    publicClient: basePublic.public,
+    protectedClient,
+  }
+}

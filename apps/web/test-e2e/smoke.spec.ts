@@ -9,7 +9,7 @@ test.describe("Smoke Tests", () => {
   })
 
   test("health check endpoint returns 200", async ({ request }) => {
-    const response = await request.get("/api/v0/health")
+    const response = await request.get("/api/v0/public/health")
 
     expect(response.status()).toBe(200)
 
