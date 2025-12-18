@@ -9,8 +9,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const client = createClient("v0")
-    client.hello
+    const { publicClient } = createClient()
+    publicClient.hello
       .$get()
       .then((res) => res.json())
       .then((data) => setMessage(data.message))
