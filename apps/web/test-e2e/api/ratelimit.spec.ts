@@ -14,7 +14,7 @@ test.describe("Rate Limiting E2E", () => {
 
     // 連続でリクエストを送信
     for (let i = 0; i < maxRequests; i++) {
-      const response = await request.get("/api/v0/posts", {
+      const response = await request.get("/api/v0/public/health", {
         headers: {
           "X-Forwarded-For": randomIp,
         },

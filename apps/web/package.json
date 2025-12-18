@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "dev:e2e": "NEXT_E2E=true infisical run --env=staging -- next dev -p 3001",
-    "dev:e2e:ci": "NEXT_E2E=true next dev -p 3001",
+    "dev:e2e": "SKIP_ENV_VALIDATION=true DISABLE_RATE_LIMIT=true BETTER_AUTH_URL=http://localhost:3001 NEXT_E2E=true infisical run --env=staging -- next dev -p 3001",
+    "dev:e2e:ci": "SKIP_ENV_VALIDATION=true DISABLE_RATE_LIMIT=true BETTER_AUTH_URL=http://localhost:3001 NEXT_E2E=true next dev -p 3001",
     "dev:e2e:ratelimit": "NEXT_E2E=true DISABLE_RATE_LIMIT=false infisical run --env=staging -- next dev -p 3001",
     "build": "SKIP_ENV_VALIDATION=true next build",
     "lint": "biome check .",
@@ -17,7 +17,7 @@
     "test:int": "infisical run --projectId=e3871e85-7a12-4fff-9f5a-5cefd3593a5a --env=staging -- vitest -c vitest.integration.config.ts --run",
     "test:coverage": "vitest run --coverage",
     "test:int:coverage": "infisical run --projectId=e3871e85-7a12-4fff-9f5a-5cefd3593a5a --env=staging -- vitest -c vitest.integration.config.ts --run --coverage",
-    "test:e2e": "playwright test",
+    "test:e2e": "DISABLE_RATE_LIMIT=true infisical run --projectId=e3871e85-7a12-4fff-9f5a-5cefd3593a5a --env=staging -- playwright test",
     "test:e2e:ratelimit": "playwright test test-e2e/api/ratelimit.spec.ts"
   },
   "dependencies": {
