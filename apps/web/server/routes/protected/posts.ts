@@ -2,21 +2,21 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi"
 import { db } from "@packages/db"
 import { PostRepositoryImpl as PostRepository } from "@/server/infrastructure/repositories/post.repository.drizzle"
 import { PostUseCase } from "@/server/usecase/post.usecase"
-import { toPostResponse } from "./dto/post.mapper"
+import { toPostResponse } from "../dto/post.mapper"
 import {
   createPostSchema,
   postResponseSchema,
   updatePostSchema,
-} from "./dto/post.schema"
+} from "../dto/post.schema"
 
-// Instantiate repository (Dependency Injection is manual for now)
+// Instantiate repository
 const postRepository = new PostRepository(db)
 const postUseCase = new PostUseCase(postRepository)
-const tags = ["v0/Posts"]
+const tags = ["v0/Posts (Protected)"]
 
-// routes for /api/v0/posts
-export const postsRoutes = new OpenAPIHono()
-  // GET /api/v0/posts
+// routes for /api/v0/protected/posts
+export const protectedPostsRoutes = new OpenAPIHono()
+  // GET /api/v0/protected/posts
   .openapi(
     createRoute({
       method: "get",
@@ -38,7 +38,7 @@ export const postsRoutes = new OpenAPIHono()
       return c.json(allPosts.map((p) => toPostResponse(p)))
     },
   )
-  // GET /api/v0/posts/:id
+  // GET /api/v0/protected/posts/:id
   .openapi(
     createRoute({
       method: "get",
@@ -74,7 +74,8 @@ export const postsRoutes = new OpenAPIHono()
       return c.json(toPostResponse(post))
     },
   )
-  // POST /api/v0/posts
+
+  // POST /api/v0/protected/posts
   .openapi(
     createRoute({
       method: "post",
@@ -102,11 +103,13 @@ export const postsRoutes = new OpenAPIHono()
     }),
     async (c) => {
       const args = c.req.valid("json")
+      // In a real app, you would use c.var.user here
+      // const user = c.var.user
       const savedPost = await postUseCase.createPost(args)
       return c.json(toPostResponse(savedPost), 201)
     },
   )
-  // PUT /api/v0/posts/:id
+  // PUT /api/v0/protected/posts/:id
   .openapi(
     createRoute({
       method: "put",
@@ -152,7 +155,7 @@ export const postsRoutes = new OpenAPIHono()
       return c.json(toPostResponse(updatedPost))
     },
   )
-  // DELETE /api/v0/posts/:id
+  // DELETE /api/v0/protected/posts/:id
   .openapi(
     createRoute({
       method: "delete",
