@@ -3,8 +3,8 @@ import { z } from "zod"
 // 1. Full Definition (Canonical Schema)
 export const postSchema = z.object({
   id: z.string(),
-  title: z.string().min(1),
-  content: z.string().min(1),
+  userId: z.string(),
+  content: z.string().min(1).max(280, "投稿は280文字以内にしてください"),
   createdAt: z.date(),
   updatedAt: z.date(),
 })
@@ -12,6 +12,7 @@ export const postSchema = z.object({
 // 2. Derive Core Schema from Full Schema
 export const postCoreSchema = postSchema.omit({
   id: true,
+  userId: true,
   createdAt: true,
   updatedAt: true,
 })
@@ -21,7 +22,8 @@ export type PostCoreType = z.infer<typeof postCoreSchema>
 
 // Internal props: Core data + Optional system fields
 type PostProps = PostCoreType &
-  Partial<Pick<PostType, "id" | "createdAt" | "updatedAt">>
+  Partial<Pick<PostType, "id" | "createdAt" | "updatedAt">> &
+  Pick<PostType, "userId">
 
 export class Post {
   private constructor(public readonly props: PostProps) {}
@@ -30,8 +32,8 @@ export class Post {
     return this.props.id
   }
 
-  public get title() {
-    return this.props.title
+  public get userId() {
+    return this.props.userId
   }
 
   public get content() {
@@ -46,12 +48,16 @@ export class Post {
     return this.props.updatedAt
   }
 
-  public static create(payload: z.infer<typeof postCoreSchema>): Post {
+  public static create(
+    userId: string,
+    payload: z.infer<typeof postCoreSchema>,
+  ): Post {
     // Validate payload against PostCoreSchema
     const validPayload = postCoreSchema.parse(payload)
 
     return new Post({
       ...validPayload,
+      userId,
     })
   }
 

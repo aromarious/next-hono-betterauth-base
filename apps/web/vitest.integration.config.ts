@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [tsconfigPaths({ root: __dirname })],
     test: {
+      name: "integration",
       globals: false,
       environment: "node",
       include: ["**/*.integration.test.ts"],
