@@ -81,6 +81,48 @@ export const protectedPostsRoutes = new OpenAPIHono()
       return c.json(toPostResponse(savedPost), 201)
     },
   )
+  // GET /api/v0/protected/posts/:id - 特定の投稿を取得（所有者チェック付き）
+  .openapi(
+    createRoute({
+      method: "get",
+      path: "/posts/:id",
+      tags,
+      responses: {
+        400: {
+          description: "Invalid ID",
+        },
+        401: {
+          description: "Unauthorized",
+        },
+        404: {
+          description: "Post not found",
+        },
+        200: {
+          content: {
+            "application/json": {
+              schema: postResponseSchema,
+            },
+          },
+          description: "Get a specific post",
+        },
+      },
+    }),
+    async (c) => {
+      const user = c.var.user
+      if (!user) {
+        return c.json({ error: "Unauthorized" }, 401)
+      }
+      const id = c.req.param("id")
+      if (!id) return c.json({ error: "Invalid ID" }, 400)
+
+      const post = await postRepository.findById(id)
+      if (!post || post.userId !== user.id) {
+        return c.json({ error: "Post not found" }, 404)
+      }
+
+      return c.json(toPostResponse(post))
+    },
+  )
   // DELETE /api/v0/protected/posts/:id - 投稿削除（所有者チェック付き）
   .openapi(
     createRoute({

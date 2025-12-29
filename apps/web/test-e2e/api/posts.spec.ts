@@ -17,7 +17,6 @@ test.describe("Posts API E2E", () => {
     request,
   }) => {
     const newPost = {
-      title: "E2E Test Post",
       content: "This is a test post created by E2E test",
     }
 
@@ -29,7 +28,6 @@ test.describe("Posts API E2E", () => {
 
     const data = await response.json()
     expect(data).toHaveProperty("id")
-    expect(data).toHaveProperty("title", newPost.title)
     expect(data).toHaveProperty("content", newPost.content)
     expect(data).toHaveProperty("createdAt")
     expect(data).toHaveProperty("updatedAt")
@@ -40,8 +38,7 @@ test.describe("Posts API E2E", () => {
   }) => {
     // まず投稿を作成
     const newPost = {
-      title: "Test Post for GET",
-      content: "Test content",
+      content: "Test content for specific retrieval",
     }
     const createResponse = await request.post("/api/v0/protected/posts", {
       data: newPost,
@@ -62,7 +59,7 @@ test.describe("Posts API E2E", () => {
 
     const data = await response.json()
     expect(data).toHaveProperty("id", createdPost.id)
-    expect(data).toHaveProperty("title", newPost.title)
+    expect(data).toHaveProperty("content", newPost.content)
   })
 
   test("GET /api/v0/protected/posts/:id returns 404 for non-existent post", async ({
