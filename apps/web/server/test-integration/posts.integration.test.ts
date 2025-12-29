@@ -76,7 +76,7 @@ describe("Posts API Integration Test", () => {
       // 2. Retrieve all posts (should return user's own posts only)
       const listRes = await protectedClient.posts.$get()
       expect(listRes.status).toBe(200)
-      const list = await listRes.json()
+      const list = (await listRes.json()) as any[]
       expect(list).toHaveLength(1)
       expect(list[0]!.id).toBe(created.id)
 
@@ -89,7 +89,7 @@ describe("Posts API Integration Test", () => {
       // Verify list is empty
       const listAfterDeleteRes = await protectedClient.posts.$get()
       expect(listAfterDeleteRes.status).toBe(200)
-      const listAfterDelete = await listAfterDeleteRes.json()
+      const listAfterDelete = (await listAfterDeleteRes.json()) as any[]
       expect(listAfterDelete).toHaveLength(0)
     })
 
@@ -113,7 +113,7 @@ describe("Posts API Integration Test", () => {
       // 自分の投稿一覧を取得
       const listRes = await protectedClient.posts.$get()
       expect(listRes.status).toBe(200)
-      const list = await listRes.json()
+      const list = (await listRes.json()) as any[]
       expect(list).toHaveLength(0) // 他のユーザーの投稿は見えない
     })
 
