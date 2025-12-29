@@ -1,6 +1,4 @@
-import { defineWorkspace } from "vitest/node"
-
-export default defineWorkspace([
+export default [
   {
     extends: "apps/web/vitest.config.ts",
     root: "apps/web",
@@ -18,4 +16,4 @@ export default defineWorkspace([
       include: ["**/*.integration.test.ts"],
     },
   },
-])
+]
