@@ -1,7 +1,10 @@
-import { db, PostTable, sql } from "@packages/db"
+import { db, PostTable, sql, UserTable } from "@packages/db"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { createClient } from "@/lib/client"
 import app from "@/server/index"
+
+const testUserId = "test-user"
+const otherUserId = "other-user"
 
 vi.mock("@/lib/auth", () => ({
   auth: {
@@ -24,6 +27,27 @@ describe("Posts API Integration Test", () => {
   beforeEach(async () => {
     // データがあれば全削除してクリーンな状態にする
     await db.execute(sql`TRUNCATE TABLE ${PostTable} CASCADE`)
+    await db.execute(sql`TRUNCATE TABLE ${UserTable} CASCADE`)
+
+    // テストユーザーを作成
+    await db.insert(UserTable).values([
+      {
+        id: testUserId,
+        name: "Test User",
+        email: "test@example.com",
+        emailVerified: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: otherUserId,
+        name: "Other User",
+        email: "other@example.com",
+        emailVerified: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ])
   })
 
   const customFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -35,10 +59,9 @@ describe("Posts API Integration Test", () => {
   })
 
   describe("Post API", () => {
-    it("投稿を作成し、取得、更新、削除できるべき", async () => {
+    it("投稿を作成し、取得、削除できるべき", async () => {
       // 1. Create a post
       const createPayload = {
-        title: "Integration Title",
         content: "Content via API",
       }
       const createRes = await protectedClient.posts.$post({
@@ -46,71 +69,77 @@ describe("Posts API Integration Test", () => {
       })
       expect(createRes.status).toBe(201)
       const created = (await createRes.json()) as any
-      expect(created.title).toBe(createPayload.title)
+      expect(created.content).toBe(createPayload.content)
+      expect(created.userId).toBe(testUserId)
       expect(created.id).toBeDefined()
 
-      // 2. Retrieve all posts
+      // 2. Retrieve all posts (should return user's own posts only)
       const listRes = await protectedClient.posts.$get()
       expect(listRes.status).toBe(200)
-      const list = await listRes.json()
+      const list = (await listRes.json()) as any[]
       expect(list).toHaveLength(1)
       expect(list[0]!.id).toBe(created.id)
 
-      // 3. Retrieve single post
-      const getRes = await protectedClient.posts[":id"].$get({
-        param: { id: created.id },
-      })
-      expect(getRes.status).toBe(200)
-      const single = (await getRes.json()) as any
-      expect(single.id).toBe(created.id)
-      expect(single.title).toBe(createPayload.title)
-      expect(single.content).toBe(createPayload.content)
-
-      // 4. Update a post
-      const updatePayload = {
-        title: "Updated Title",
-        content: "Updated Content via API",
-      }
-      const updateRes = await protectedClient.posts[":id"].$put({
-        param: { id: created.id },
-        json: updatePayload,
-      })
-      expect(updateRes.status).toBe(200)
-      const updated = (await updateRes.json()) as any
-      expect(updated.id).toBe(created.id)
-      expect(updated.title).toBe(updatePayload.title)
-      expect(updated.content).toBe(updatePayload.content)
-
-      // Verify the update by retrieving again
-      const getUpdatedRes = await protectedClient.posts[":id"].$get({
-        param: { id: created.id },
-      })
-      expect(getUpdatedRes.status).toBe(200)
-      const verifiedUpdated = (await getUpdatedRes.json()) as any
-      expect(verifiedUpdated.title).toBe(updatePayload.title)
-      expect(verifiedUpdated.content).toBe(updatePayload.content)
-
-      // 5. Delete a post
+      // 3. Delete a post
       const deleteRes = await protectedClient.posts[":id"].$delete({
         param: { id: created.id },
       })
       expect(deleteRes.status).toBe(204)
 
-      // Verify deletion by attempting to retrieve
-      const getDeletedRes = await protectedClient.posts[":id"].$get({
-        param: { id: created.id },
-      })
-      expect(getDeletedRes.status).toBe(404)
-
       // Verify list is empty
       const listAfterDeleteRes = await protectedClient.posts.$get()
       expect(listAfterDeleteRes.status).toBe(200)
-      const listAfterDelete = await listAfterDeleteRes.json()
+      const listAfterDelete = (await listAfterDeleteRes.json()) as any[]
       expect(listAfterDelete).toHaveLength(0)
     })
 
-    it("存在しない投稿に対して 404 を返すべき", async () => {
-      const res = await protectedClient.posts[":id"].$get({
+    it("280文字を超える投稿を作成しようとすると400エラーを返すべき", async () => {
+      const createPayload = {
+        content: "a".repeat(281),
+      }
+      const createRes = await protectedClient.posts.$post({
+        json: createPayload,
+      })
+      expect(createRes.status).toBe(400)
+    })
+
+    it("他のユーザーの投稿は表示されないべき", async () => {
+      // 他のユーザーの投稿を直接DBに追加
+      await db.insert(PostTable).values({
+        userId: otherUserId,
+        content: "Other user's post",
+      })
+
+      // 自分の投稿一覧を取得
+      const listRes = await protectedClient.posts.$get()
+      expect(listRes.status).toBe(200)
+      const list = (await listRes.json()) as any[]
+      expect(list).toHaveLength(0) // 他のユーザーの投稿は見えない
+    })
+
+    it("他のユーザーの投稿を削除しようとすると403エラーを返すべき", async () => {
+      // 他のユーザーの投稿を直接DBに追加
+      const [otherPost] = await db
+        .insert(PostTable)
+        .values({
+          userId: otherUserId,
+          content: "Other user's post",
+        })
+        .returning()
+
+      // 削除を試みる
+      const deleteRes = await protectedClient.posts[":id"].$delete({
+        param: { id: otherPost!.id },
+      })
+      expect(deleteRes.status).toBe(403)
+
+      // 投稿がまだ存在することを確認
+      const inDb = await db.select().from(PostTable)
+      expect(inDb).toHaveLength(1)
+    })
+
+    it("存在しない投稿を削除しようとすると404を返すべき", async () => {
+      const res = await protectedClient.posts[":id"].$delete({
         param: { id: "non-existent-id" },
       })
       expect(res.status).toBe(404)

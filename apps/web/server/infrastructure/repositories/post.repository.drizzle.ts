@@ -1,5 +1,5 @@
 import type { DrizzleClient } from "@packages/db"
-import { eq, PostTable } from "@packages/db"
+import { desc, eq, PostTable } from "@packages/db"
 import type { PostRepository } from "@/server/domain/ports/post.repository"
 import { Post } from "@/server/domain/post.entity"
 
@@ -8,6 +8,15 @@ export class PostRepositoryImpl implements PostRepository {
 
   async findAll(): Promise<Post[]> {
     const results = await this.db.select().from(PostTable)
+    return results.map((p) => Post.reconstruct({ ...p }))
+  }
+
+  async findByUserId(userId: string): Promise<Post[]> {
+    const results = await this.db
+      .select()
+      .from(PostTable)
+      .where(eq(PostTable.userId, userId))
+      .orderBy(desc(PostTable.createdAt))
     return results.map((p) => Post.reconstruct({ ...p }))
   }
 
@@ -27,11 +36,14 @@ export class PostRepositoryImpl implements PostRepository {
 
     if (!post.isPersisted()) {
       // Create (Insert)
-      // Drizzle handles missing default columns (id, createdAt) if they are undefined
+      if (!data.userId) {
+        throw new Error("Cannot create post without userId")
+      }
+
       const result = await this.db
         .insert(PostTable)
         .values({
-          title: data.title,
+          userId: data.userId,
           content: data.content,
         })
         .returning()
@@ -41,46 +53,8 @@ export class PostRepositoryImpl implements PostRepository {
       return Post.reconstruct({ ...newPostData })
     }
 
-    // Update (Upsert)
-    // For update, we expect id and probably timestamps involved.
-    // However, onConflictDoUpdate needs specific handling.
-
-    // Ensure we have values to insert for upsert attempt.
-    // If createdAt is missing (should only happen on new post, but this block is isPersisted),
-    // we should fallback or throw. But isPersisted checks id, so id exists.
-    // createdAt might be missing if reconstructing via create() manually with ID? No, create() has no ID.
-    // Reconstruct requires full props.
-
-    // So if isPersisted is true, it came from reconstruct/save, so fields should exist.
-    // But typings say optional. Let's handle safely.
-
-    if (!data.createdAt) {
-      throw new Error("Cannot save persisted entity without createdAt")
-    }
-
-    const result = await this.db
-      .insert(PostTable)
-      .values({
-        id: data.id,
-        title: data.title ?? "",
-        content: data.content ?? "",
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt ?? new Date(),
-      })
-      .onConflictDoUpdate({
-        target: PostTable.id,
-        set: {
-          title: data.title,
-          content: data.content,
-          updatedAt: data.updatedAt,
-        },
-      })
-      .returning()
-
-    const updatedPostData = result[0]
-    if (!updatedPostData) throw new Error("Failed to update post")
-
-    return Post.reconstruct({ ...updatedPostData })
+    // 一人Twitterでは更新機能は不要なので、ここでエラーを投げる
+    throw new Error("Update operation is not supported")
   }
 
   async delete(id: string): Promise<Post | null> {

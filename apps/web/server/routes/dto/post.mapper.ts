@@ -11,7 +11,7 @@ export function toPostResponse(post: Post) {
 
   return {
     id: post.id,
-    title: post.title,
+    userId: post.userId,
     content: post.content,
     createdAt: post.createdAt.toISOString(),
     updatedAt: post.updatedAt.toISOString(),

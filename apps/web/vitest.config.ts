@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [tsconfigPaths({ root: __dirname })],
     test: {
+      name: "unit",
       globals: false,
       environment: "node",
       include: ["**/*.test.ts", "**/*.test.tsx"],

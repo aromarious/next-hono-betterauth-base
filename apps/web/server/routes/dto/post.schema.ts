@@ -14,7 +14,4 @@ export const postResponseSchema = postSchema
 
 export const createPostSchema = postCoreSchema
 
-export const updatePostSchema = postCoreSchema.partial()
-
 export type CreatePostInput = z.infer<typeof createPostSchema>
-export type UpdatePostInput = z.infer<typeof updatePostSchema>
