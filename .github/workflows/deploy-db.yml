@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - 'packages/db/**'
+      - '.github/workflows/deploy-db.yml'
+  workflow_dispatch:
 
 env:
   NODE_VERSION: '20'
@@ -44,5 +46,5 @@ jobs:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_SECRET }}
         run: |
           cd packages/db
-          # Using "production" environment as confirmed
-          infisical run --projectId=e3871e85-7a12-4fff-9f5a-5cefd3593a5a --env=production -- pnpm db:migrate
+          # Using "prod" environment as confirmed
+          infisical run --projectId=e3871e85-7a12-4fff-9f5a-5cefd3593a5a --env=prod -- pnpm db:migrate
