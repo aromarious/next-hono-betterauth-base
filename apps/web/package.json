@@ -47,7 +47,7 @@
     "@vitejs/plugin-react": "catalog:",
     "@vitest/coverage-v8": "^4.0.16",
     "dotenv": "^17.2.3",
-    "eslint": "^9.15.0",
+    "eslint": "^10.0.0",
     "postcss": "catalog:",
     "postgres": "^3.4.7",
     "tailwindcss": "catalog:",
