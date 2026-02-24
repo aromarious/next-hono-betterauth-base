@@ -2,20 +2,20 @@ packages:
   - apps/*
   - packages/*
 catalog:
-  react: ^19.0.0
-  react-dom: ^19.0.0
-  "@types/react": ^19.0.1
+  react: ^19.2.4
+  react-dom: ^19.2.4
+  "@types/react": ^19.2.14
   "@types/react-dom": ^19.0.2
-  "@biomejs/biome": ^2.3.10
-  '@types/node': ^25.0.3
+  "@biomejs/biome": ^2.4.4
+  '@types/node': ^25.3.0
   typescript: ^5.3.3
-  tailwindcss: ^4.1.18
-  "@tailwindcss/postcss": ^4.0.0
+  tailwindcss: ^4.2.1
+  "@tailwindcss/postcss": ^4.2.1
   postcss: ^8.5.6
-  autoprefixer: ^10.4.23
-  vitest: ^4.0.16
-  zod: ^4.2.1
-  '@vitejs/plugin-react': ^5.1.2
+  autoprefixer: ^10.4.24
+  vitest: ^4.0.18
+  zod: ^4.3.6
+  '@vitejs/plugin-react': ^5.1.4
 onlyBuiltDependencies:
   - '@biomejs/biome'
   - es5-ext
