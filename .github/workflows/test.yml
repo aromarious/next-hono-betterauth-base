@@ -153,7 +153,7 @@ jobs:
         run: node .github/scripts/coverage-summary.js apps/web/coverage/coverage-summary.json "Integration Test Coverage"
 
       - name: Upload Unit Test Coverage
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: unit-test-coverage
@@ -161,7 +161,7 @@ jobs:
           retention-days: 30
 
       - name: Upload Integration Test Coverage
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: github.actor != 'dependabot[bot]' && always()
         with:
           name: integration-test-coverage
